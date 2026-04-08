@@ -38,18 +38,20 @@ Sift is stage 2. Given Hunter's `01-sources.json`, Sift fetches each URL through
      - Otherwise (`xlsx_ooxml` or `html_table`) iterate `rows` and emit one fact per meaningful row using the **row-to-fact mapping** in step 5.
      - **Always set `is_official: true`** on every fact emitted from a `file://` source (manual downloads are authoritative by definition).
 
-   - **Else (http/https source):** Use the existing Firecrawl `/extract` flow (unchanged schema dispatch). After extraction:
-     - Strip `www.` from the source hostname, lowercase it.
-     - If the hostname is in `preset.authoritative_domains` (or there is no preset loaded), set `is_official: true` on every fact from that source. Otherwise set `is_official: false`.
+   - **Else (http/https source):** Use the existing Firecrawl `/extract` flow (unchanged schema dispatch). After extraction, determine `is_official` per fact using this rule:
+     - If a preset was loaded and the source hostname (after stripping `www.` and lowercasing) is in `preset.authoritative_domains` → `is_official: true`.
+     - Otherwise → `is_official: false`. Note: under strict whitelist mode this branch is unreachable for http sources because step 0 already dropped non-whitelist http sources. This is the safe fallback for topics with no preset.
 
 5. **Row-to-fact mapping for parsed sources.** Dispatch on the source's filename basename (extract with `path.basename(source.url)` after stripping the `file://` prefix):
 
    | Filename pattern | research_block | Row semantics |
    |---|---|---|
-   | `Trade_Map_*List_of_supplying*` | `import_export` | Each row = one supplier country (Ukraine's imports). The country name is in the first string column. For each numeric column whose header matches `^(19|20)\d{2}$` (a bare year), or contains "value" + a year, emit one fact: `metric = "HS {code} imports from {country}"`, `value = cell`, `unit = "thousand USD"` (Trade Map default), `time_period = column header year`, `geography = topic.geography`. Extract `{code}` from the source's `source_title` or filename (look for the 6-digit HS code). If not inferable, use `"HS (unknown)"`. |
-   | `Trade_Map_*List_of_importing*` | `import_export` | Same as above but `metric = "HS {code} exports to {country}"`. |
+   | `Trade_Map_*List_of_supplying*` | `import_export` | Each row = one supplier country (Ukraine's imports). The country name is in the first string column. For each numeric column whose header matches `^(19|20)\d{2}$` (a bare year), or contains "value" + a year, emit one fact: `metric = "HS {code} imports from {country}"`, `value = cell`, `unit = "thousand USD"` (Trade Map default), `time_period = column header year`, `geography = topic.geography`. Extract `{code}` per the HS-code regex rule below. |
+   | `Trade_Map_*List_of_importing*` | `import_export` | Same as above but `metric = "HS {code} exports to {country}"`. Extract `{code}` per the HS-code regex rule below. |
    | `dataset_*CONSTRUCTION*` or `dataset_*BEGINING_COMPLETION*` (Держstat SDMX) | `demand_drivers` | Each row = one indicator × period. Emit one fact per row: `metric = row.get("INDICATOR") or first non-null string column value`, `value = row.get("VALUE") or first numeric column value`, `unit = row.get("UNIT")`, `time_period = row.get("TIME_PERIOD") or row.get("PERIOD")`. SDMX exports use standardized column names, but tolerate variations. |
    | anything else | fall back | Emit one fact per row: `metric = source_title + " row " + str(row_index)`, `value = null`, `unit = null`, `notes = json.dumps(row)[:300]`. These land as qualitative rows; Sage and Quill decide whether to use them. |
+
+   **HS code extraction rule (for Trade Map rows):** extract the 6-digit HS code from (in priority order): (a) `source.key_fact`, (b) `source.source_title`, (c) the filename basename. Match using regex `\b(\d{6})\b` — the first match wins. Trade Map filenames often contain the code in parentheses like `..._(391620).xls`. If no match, use `"HS (unknown)"`.
 
    **Skip rows where the value column is None or empty.** Do not emit facts with null values for `import_export` or `demand_drivers` quantitative blocks.
 
