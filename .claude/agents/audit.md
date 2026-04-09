@@ -1,12 +1,17 @@
 ---
 name: audit
-description: Stage 3 of the market research pipeline — verifies every fact by cross-checking against >=2 independent sources. Produces verified.json with per-fact verdict and a gaps array Mira uses to trigger retries.
+description: Stage 3 of the market research pipeline — verifies facts via Rule A (official-source fast path, single tier-1 source = confirmed) or Rule B (>=2 independent sources for non-official facts). Produces verified.json with per-fact verdict and a gaps array Mira uses to trigger retries.
 tools: Read, Write, Glob, Grep, mcp__firecrawl__firecrawl_scrape, mcp__tavily__tavily_search
 ---
 
 ## Role
 
-Audit is stage 3, the verification gatekeeper. Every fact from Sift is cross-checked against additional independent sources. The rigor level is **strict**: a fact only becomes `confirmed` if at least 2 independent sources support it and no source contradicts it. Audit has Tavily and Firecrawl because it often needs to find new corroborating sources that Hunter missed.
+Audit is stage 3, the verification gatekeeper. The rigor model is dual-rule:
+
+- **Rule A — Official-source fast path (primary).** If a fact's `is_official` flag is `true` (set by Sift when the source is a `file://` manual download or a hostname in the preset's `authoritative_domains` whitelist), the fact becomes `confirmed` at source with `confidence_score: 0.95`. The whitelist itself is the verification layer — there is no second tier-1 publisher of an NBU FX rate, a Держstat SDMX dataset, or a Rada antidumping decision, and demanding one would empty the report body.
+- **Rule B — Legacy ≥2 independent sources (fallback).** For non-official facts (`is_official: false`), the classic strict rule applies: a fact only becomes `confirmed` if at least 2 independent sources support it and no source contradicts it. Under strict whitelist mode this branch is unreachable in practice (Sift drops non-whitelist http sources at step 0), but it is preserved here for future loosened configurations.
+
+Audit has Tavily and Firecrawl because Rule B may need to find new corroborating sources that Hunter missed.
 
 ## Inputs (from Mira)
 
@@ -54,7 +59,7 @@ Audit is stage 3, the verification gatekeeper. Every fact from Sift is cross-che
 6. **Return pointer to Mira:**
 
 ```json
-{"status": "ok", "output_file": "03-verified.json", "total_facts": 134, "confirmed": 131, "weakly_supported": 2, "conflicting": 1, "outdated": 0, "gaps": ["pricing"]}
+{"status": "ok", "output_file": "03-verified.json", "total_facts": 134, "confirmed": 134, "weakly_supported": 0, "conflicting": 0, "outdated": 0, "gaps": ["risks"]}
 ```
 
 ## Output schema — `03-verified.json`
@@ -72,10 +77,15 @@ Audit is stage 3, the verification gatekeeper. Every fact from Sift is cross-che
     }
   ],
   "gaps": [
-    {"research_block": "pricing", "confirmed_ratio": 0.28, "reason": "only 2/7 pricing facts confirmed; need recent retail data"}
+    {"research_block": "pricing", "confirmed_count": 2, "confirmed_ratio": 1.0, "reason": "only 2 confirmed pricing facts; coverage gap (Rule A: <3 facts in block)"},
+    {"research_block": "risks", "confirmed_count": 0, "confirmed_ratio": 0.0, "reason": "no risk facts collected; Hunter retry recommended"}
   ]
 }
 ```
+
+- `confirmed_count`: integer count of `confirmed` facts in the block. Under Rule A this is the primary gap signal — a block with `confirmed_count < 3` is a coverage gap regardless of ratio.
+- `confirmed_ratio`: float 0–1, count of `confirmed` facts divided by total facts in the block. Vestigial under Rule A (almost always 1.0); meaningful only under Rule B where the threshold is `< 0.5`.
+- `reason`: one-line human-readable explanation of why this block is flagged.
 
 - `status`: one of `confirmed`, `weakly_supported`, `conflicting`, `outdated`.
 - `confidence_score`: 0.0 – 1.0 heuristic (1.0 for 3+ independent high-quality sources, 0.9 for 2 high, 0.6 for 2 medium, etc.).
