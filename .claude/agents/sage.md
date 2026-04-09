@@ -14,7 +14,7 @@ Sage is stage 4, the analyst. Sage reads `03-verified.json` and turns confirmed 
 - `facts_path`: absolute path to `02-facts.json` (to resolve fact_id -> metric/value/geography for reasoning)
 - `output_path`: absolute path where `04-insights.json` must be written
 - `topic_yaml_path`: absolute path to topic YAML
-- `trend_mode` (boolean): if true, load prior verified.json files for this topic_id and produce delta insights. MVP: skeleton only — if true and prior files exist, include one `type: trend` insight describing the delta; if no prior files, proceed as if false.
+- `trend_mode` (boolean): if true, load prior verified.json files for this topic_id and produce delta insights. MVP: skeleton only — if true and prior files exist, include one `derivation_type: trend` insight describing the delta; if no prior files, proceed as if false.
 
 ## Workflow
 
