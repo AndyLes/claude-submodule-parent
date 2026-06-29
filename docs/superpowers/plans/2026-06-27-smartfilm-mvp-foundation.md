@@ -914,3 +914,29 @@ git commit -m "feat(smartfilm): auth flow, role-scoped dashboard, E2E smoke, CI"
 ## Next slices (each its own spec-aligned plan)
 
 2. Reference-data admin (CRUD + price history) · 3. Order form core + auto-calc · 4. Busbar SVG selector + >3m rule · 5. Add-ons + shipping/address · 6. Pricing engine · 7. Summary + PDF spec · 8. Attachments (Storage) · 9. DPP QR integration · 10. Status state-machine · 11. Internal dashboard + dealer cabinet · 12. Email notifications · 13. Hardening.
+
+---
+
+## Addendum 2026-06-29 — scope expansion from dealer order-form docs
+
+Two dealer docs (a process overview + a filled "SGT ORDER" example) were folded into the design spec — see **spec §11–§13** for full detail (exact catalog, accessories + prices, packing math, dealer volume pricing, order-render format, glass tempering sub-form, and a reconciliation table vs. the current build).
+
+**Build status (delivered this session, beyond Slice 1, on the live Supabase project):** order form (film) with dynamic panels + mm/inch toggle, busbar visual selector + panel preview, attachments (edit + new-order staging), submit flow, orders list + read-only order view, owner `/admin` (product groups, products, company managers, dealers + dealer-login edit), required order name, Phosphor icon actions. RLS dealer-scoping verified.
+
+**Revised next slices (replace the list above; detail in spec §13):**
+- **A. Catalog & reference seed** — full film products + product groups + accessories (with prices) + busbar names.
+- **B. Order-form additions** — order-type values (New / Replacement-product / Replacement-install), UL-labels Y/N, duplicate-panel + 1–30 guard, ratio > 1:2.5 ⚠ warning, accessories picker with qty.
+- **C. Pricing engine** — per-dealer **monthly volume tiers** + line/total compute + dealer **progress bar**.
+- **D. Packing calculator (film)** — drum/box bin-pack (≤ 100 SqFt per drum + panel width ≤ box − 6") → boxes on order/PDF.
+- **E. Order view + PDF** — match the SGT layout (panels + accessories + shipping + packing + totals).
+- **F. Email on submit** — Resend → Production@/office@/sales@smartglasstech.com.
+- **G. Phase 3 — Smart-Glass** — glass catalog + glass-only fields (tempering/glass type) + crates + **auto tempering sub-form** (`tempering_jobs`, each panel → 2 glass panels).
+
+Payment gating (paid → production) stays Phase 2; DPP QR, internal kanban, and hardening as previously specced.
+
+**Open decisions for the operator:**
+1. Build **Glass now** or stay **film-only** through Phase 1 (Glass is the larger lift — adds the tempering sub-form + crates).
+2. Are the volume-tier numbers ($40/$38/$36) a **single shared tier** or **per-dealer-configurable**? (Spec assumes per-dealer.)
+3. **Busbar** — keep the 7 SVG visuals mapped onto the 5 named types, or reduce to 5.
+4. **Packing** — compute boxes on the fly vs. persist them per order.
+5. **First slice to build** — suggested order A → B → C.

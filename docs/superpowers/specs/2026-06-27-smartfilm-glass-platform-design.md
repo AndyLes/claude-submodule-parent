@@ -3,6 +3,7 @@
 **Date:** 2026-06-27
 **Status:** Draft for review
 **Source TZ:** `TZ_SmartFilm_SmartGlass_Platform.md` v1.1 (baseline 2026-06-26)
+**Updated:** 2026-06-29 — folded in two dealer order-form docs (full product catalog, accessories + prices, packing math, dealer volume pricing, order-render format, glass tempering sub-form). New detail + reconciliation with the current build live in **§11–§13**.
 **Interface language:** English (US market) · **Currency:** USD · **Units:** mm/inch + m²/SqFt
 
 ## Locked decisions (this session)
@@ -135,3 +136,81 @@ Note: dropping the in-platform product page (now DPP) trims a few hours from Pha
 - **Backups:** Supabase managed + PITR; ≤ 24 h recovery point.
 - **Responsive:** desktop + mobile (form is filled on phones).
 - **i18n:** US English now; architecture allows adding languages.
+
+---
+
+## 11. Order-form requirements detail — source: dealer docs (2026-06-29)
+
+Two client docs (a process overview + a real filled "SGT ORDER" example) refine the order forms and add concrete catalog, accessories, packing, pricing, and order-render detail. They confirm the architecture; the items below make §4–§6 precise.
+
+### 11.1 Two order forms — Film and Glass
+There are **two** order forms: **Smart Film** (MVP / Phase 1) and **Smart Glass** (Phase 3 — adds glass-only fields, crates, and a tempering sub-form). Both share header + panels + accessories + ratio/busbar logic; they differ in catalog, packing, pricing, and the glass-only fields in §11.9.
+
+### 11.2 Product catalog (exact)
+**Film:** PDLC Adhesive Film — White (VLT 91), Light Grey (VLT 60), Dark Grey (VLT 40), Solar Grey (VLT 15); PNLC Adhesive Film; DLC Adhesive Film — Contrast 10, Contrast 15.
+**Glass (Phase 3):** PDLC Laminated 7/16" & 9/16"; PNLC Laminated 7/16" & 9/16"; DLC Laminated 7/16" & 9/16" (Contrast 10 / 15); PDLC Insulated 1"; DLC Insulated 1" (Contrast 10 / 15). Glass-only header: **Tempering Type** (Fully Tempered / Heat Strengthened), **Glass Type** (Low Iron / Regular Clear).
+→ `product_groups` = Film vs Glass families; seed `products` with the above (replaces the placeholder 2-item seed).
+
+### 11.3 Order header fields
+Name · Email · Address · **PO / project name** (the order name) · **Area/Region** · **Product** · **Order Type** · **Adjacent panels?** (Y/N) · **UL-Labels on panels?** (Y/N — new) · **# panels (1–30)** · Comments · Attachments · **Shipping method** · **Delivery name/phone/address** · **Rush order** flag.
+**Order Type (revised) — three options:** New Order · Replacement due to product fail · Replacement due to installation fail. *(Build currently has new_order/re_order/replacement/sample — change to these three.)*
+
+### 11.4 Panels
+- **Count 1–30**, with a **"duplicate panel"** action (clone a panel for repeated identical sizes).
+- Per panel: Label, Width, Height (mm↔inch auto — built), Total SqFt (auto), **Ratio**.
+- **Ratio warning:** ratio > **1 : 2.5** → ⚠ non-blocking notice ("aspect ratio exceeds recommended 1:2.5; production can proceed, optical performance may vary"). *(Becomes the panel-level warning; the >3 m busbar guidance stays as a busbar suggestion.)*
+- **Busbar types — 5 named:** Double busbar on short side · Double on long side · Single on each short side · Single on each long side · Double on each short side. *(Reconcile with the built 7 SVG schematics: map names ↔ codes, keep the visuals.)*
+
+### 11.5 Accessories (add-ons) — catalog + price (each line has a qty)
+German Transformer 100W ($190) · German Transformer 300W ($260) · Transparent High-Temp Wire Roll 100 m ($40) · Red Wire 100 m ($40) · Black Wire 100 m ($40) · Heat Tape · Door power hinges 4"×4" Silver ($105) · Coil wire 15 mm Ext 4 m ($50) · Round Reel Wire 2-cond 1A · Square/Flat Reel Wire 4-cond 1A ($55).
+→ `addons` + `order_addons(qty)` already in schema; seed catalog; prices are price-managed reference data.
+
+### 11.6 Packing
+**Film — shipping boxes (auto-selected).** Cross-section 12"×12"; lengths 36"(900 mm) / 48"(1200) / 60"(1500) / 72"(1800). Per drum/box: **weight** — film SqFt on one drum ≤ **100 SqFt**; **size** — largest panel width ≤ **box length − 6"** (48" box → ≤ 42"). → a **packing calculator** bin-packs panels into drums/boxes and lists them on the order/PDF.
+**Glass — crate type (Phase 3):** Delta Rack 60" / 90" / 120" / Custom Closed Crate (custom pricing).
+
+### 11.7 Pricing
+- **Film dealer volume discount** — tiered $/SqFt by **monthly** volume (example: 0–500 → $40; 500–800 → $38; 800+ → $36). Per-dealer, configurable. *(This is what `pricing_tier` was a placeholder for.)*
+- **Dealer progress bar** (cabinet): "Current monthly volume 742 SqFt — 58 to unlock $36/SqFt" + an annual bar. Needs a per-dealer monthly SqFt rollup.
+- **Accessories:** fixed unit prices. **Glass:** no volume discount.
+- **Total** = Σ(panel SqFt × tier $/SqFt) + accessories + shipping/packing + tax − discounts. **Paid → production starts** (manual confirm until Phase 2 payments).
+
+### 11.8 Order view / output
+The "SGT ORDER" example is the **canonical render**: header → per-panel (label, W, H, SqFt, ratio, busbar) → Total SF → accessories (qty + price) → shipping method → delivery → notes → Rush flag. The on-screen order view (built) and the **PDF spec** should match it. On submit, email to **Production@ / office@ / sales@ smartglasstech.com**.
+
+### 11.9 Glass tempering sub-form (Phase 3, glass only)
+After a **glass** order is submitted + paid, auto-generate a simpler form for the tempering vendor. **Each smart-glass panel = 2 glass panels.** Fields: PO Name; Glass Thickness (3/16"=5 mm / 1/4"=6 mm); Glass Type (Low Iron / Regular Clear); Tempering Type (Tempered / Heat Strengthened); Polishing (Flat Polish); Logo Stamp (Y/N); each smart panel → its 2 glass panels with sizes. → `tempering_jobs` (deferred entity).
+
+## 12. Reconciliation with the current build + schema deltas
+
+Delivered this session (film): order form with dynamic panels + mm/inch, busbar visual selector, attachments (edit + new), submit, orders list + read-only order view, owner `/admin` (product groups, products, managers, dealers + dealer-login edit), required order name. Against the docs:
+
+| Area | Now | Change |
+|---|---|---|
+| Order types | new_order/re_order/replacement/sample | → New / Replacement(product) / Replacement(install) |
+| Products | placeholder White/Grey | seed full film catalog (§11.2) |
+| Busbar | 7 SVG codes + >3 m→7 | map to 5 named types (§11.4), keep visuals |
+| Panel warning | >3000 mm hint | add ratio > 1:2.5 ⚠ (§11.4) |
+| Panels | add/remove | add **duplicate** + 1–30 guard |
+| UL labels | — | `orders.ul_labels boolean` + field |
+| Accessories | tables exist, unused | seed catalog + qty picker + totals |
+| Packing | — | film box calculator (§11.6); glass crates (Ph3) |
+| Pricing | `pricing_tier` label only | volume-tier table + monthly rollup + progress bar + engine |
+| Order view / PDF | basic view | match SGT layout; add accessories/shipping/packing; PDF |
+| Email | — | Resend → Production/office/sales on submit |
+| Glass | film only | Phase 3: glass form + crates + tempering sub-form |
+
+**Schema deltas:** `orders` += `ul_labels boolean`, and (glass) `tempering_type`, `glass_type`, `crate_type`; revise `order_type` allowed values. Add packing output (`shipment_boxes` table or `orders.packing jsonb`). Add `dealer_volume_tiers (dealer_id, min_sqft, max_sqft, price_per_sqft, period)` + a monthly-SqFt rollup (view or table). Seed `addons` catalog. `tempering_jobs` for glass (Phase 3).
+
+## 13. Revised next slices (supersedes the §8 tail / plan "Next slices")
+
+Phase 1 (film) order, in dependency order:
+- **A. Catalog & reference seed** — full film products + groups + accessories (prices) + busbar names.
+- **B. Order-form additions** — order-type values, UL-labels, duplicate-panel + 1–30 guard, ratio>2.5 warning, accessories picker (qty).
+- **C. Pricing engine** — per-dealer monthly volume tiers + line/total compute + dealer progress bar.
+- **D. Packing calculator (film)** — drum/box bin-pack (≤100 SqFt + width ≤ box−6") → boxes on order/PDF.
+- **E. Order view + PDF** — match the SGT layout (accessories/shipping/packing/totals).
+- **F. Email on submit** — Resend to Production/office/sales.
+- **G. (Phase 3) Smart-Glass** — glass catalog + glass-only fields + crates + **auto tempering sub-form** (`tempering_jobs`, panel→2).
+
+Payment gating (paid→production) remains Phase 2. DPP QR, internal kanban, and hardening remain as previously specced.
