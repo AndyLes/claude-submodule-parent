@@ -925,7 +925,7 @@ Two dealer docs (a process overview + a filled "SGT ORDER" example) were folded 
 
 **Revised next slices (replace the list above; detail in spec §13):**
 - **A. Catalog & reference seed** — full film products + product groups + accessories (with prices) + busbar names.
-- **B. Order-form additions** — order-type values (New / Replacement-product / Replacement-install), UL-labels Y/N, duplicate-panel + 1–30 guard, ratio > 1:2.5 ⚠ warning, accessories picker with qty.
+- **B. Order-form additions** — Film/Glass split ✓, accessories picker with qty ✓, ratio > 1:2.5 ⚠ warning ✓; remaining: order-type values (New / Replacement-product / Replacement-install), duplicate-panel + 1–30 guard. *(UL-labels dropped 2026-06-29 — not relevant.)*
 - **C. Pricing engine** — per-dealer **monthly volume tiers** + line/total compute + dealer **progress bar**.
 - **D. Packing calculator (film)** — drum/box bin-pack (≤ 100 SqFt per drum + panel width ≤ box − 6") → boxes on order/PDF.
 - **E. Order view + PDF** — match the SGT layout (panels + accessories + shipping + packing + totals).
