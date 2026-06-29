@@ -937,6 +937,6 @@ Payment gating (paid → production) stays Phase 2; DPP QR, internal kanban, and
 **Decisions (locked 2026-06-29):**
 1. **Glass is in scope now** — Film + Glass built together (the Phase-3 glass work is pulled forward).
 2. **Volume tiers are per-dealer-configurable** (`dealer_volume_tiers`; no single shared tier).
-3. **Keep the 7 busbar visuals** — labelled with the 5 named types on codes 1–5, plus 2 extra variants (6–7).
+3. **5 busbar types** (codes 1–5): double-on-short, double-on-long, single-each-short, single-each-long, double-each-short. *(Superseded the earlier "keep 7" — extras 6–7 deactivated 2026-06-29.)*
 4. **Packing is computed on the fly** (not persisted per order).
 5. **Build order: A (catalog seed) → B (form fields) → C (pricing).** Slice A done.
