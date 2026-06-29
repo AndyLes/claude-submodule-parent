@@ -144,7 +144,7 @@ Note: dropping the in-platform product page (now DPP) trims a few hours from Pha
 Two client docs (a process overview + a real filled "SGT ORDER" example) refine the order forms and add concrete catalog, accessories, packing, pricing, and order-render detail. They confirm the architecture; the items below make §4–§6 precise.
 
 ### 11.1 Two order forms — Film and Glass
-There are **two** order forms: **Smart Film** (MVP / Phase 1) and **Smart Glass** (Phase 3 — adds glass-only fields, crates, and a tempering sub-form). Both share header + panels + accessories + ratio/busbar logic; they differ in catalog, packing, pricing, and the glass-only fields in §11.9.
+There are **two** order forms: **Smart Film** and **Smart Glass** — **both in scope now** (2026-06-29 decision; glass adds glass-only fields, crates, and the tempering sub-form). Both share header + panels + accessories + ratio/busbar logic; they differ in catalog, packing, pricing, and the glass-only fields in §11.9.
 
 ### 11.2 Product catalog (exact)
 **Film:** PDLC Adhesive Film — White (VLT 91), Light Grey (VLT 60), Dark Grey (VLT 40), Solar Grey (VLT 15); PNLC Adhesive Film; DLC Adhesive Film — Contrast 10, Contrast 15.

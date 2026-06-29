@@ -934,9 +934,9 @@ Two dealer docs (a process overview + a filled "SGT ORDER" example) were folded 
 
 Payment gating (paid → production) stays Phase 2; DPP QR, internal kanban, and hardening as previously specced.
 
-**Open decisions for the operator:**
-1. Build **Glass now** or stay **film-only** through Phase 1 (Glass is the larger lift — adds the tempering sub-form + crates).
-2. Are the volume-tier numbers ($40/$38/$36) a **single shared tier** or **per-dealer-configurable**? (Spec assumes per-dealer.)
-3. **Busbar** — keep the 7 SVG visuals mapped onto the 5 named types, or reduce to 5.
-4. **Packing** — compute boxes on the fly vs. persist them per order.
-5. **First slice to build** — suggested order A → B → C.
+**Decisions (locked 2026-06-29):**
+1. **Glass is in scope now** — Film + Glass built together (the Phase-3 glass work is pulled forward).
+2. **Volume tiers are per-dealer-configurable** (`dealer_volume_tiers`; no single shared tier).
+3. **Keep the 7 busbar visuals** — labelled with the 5 named types on codes 1–5, plus 2 extra variants (6–7).
+4. **Packing is computed on the fly** (not persisted per order).
+5. **Build order: A (catalog seed) → B (form fields) → C (pricing).** Slice A done.
