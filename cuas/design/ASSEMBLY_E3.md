@@ -33,16 +33,20 @@ AUW ~1183 г · навантаження **53.8 г/дм²** · зрив ~32.6 к
 | Крило | друк PETG, **складане** (2 половини, пін-шарнір + торсійна пружина + стоп) |
 | Хвіст | малі фіксовані фіни (в трубу) |
 
-## Друк (PETG)
+## Корпус: rounded-rect + висувний лоток (простіша збірка/сервіс)
+Плоскі стінки → **усе обладнання на одному лотку** (FC+ESC+Pi+RX+ремінь акума), що **висувається через верхній люк** — замість вигнутих кріплень. Друк без склепінь/підпор. Швидкість prop-limited → опір «коробки» коштує лише ~кілька % дальності. Пуск — **квадратна труба/рейка** (простіша за точну круглу).
+
+## Друк-лист (мінімум деталей)
 ```
 mkdir -p cad/out
-openscad -D 'part="nose"' -o cad/out/e3_nose.stl cad/e3_missile.scad
-openscad -D 'part="body"' -o cad/out/e3_body.stl cad/e3_missile.scad
-openscad -D 'part="tail"' -o cad/out/e3_tail.stl cad/e3_missile.scad
-openscad -D 'part="wing"' -o cad/out/e3_wing.stl cad/e3_missile.scad          # друк 2x (складається в корені)
-openscad -D 'part="hinge_pin"' -o cad/out/e3_hinge_pin.stl cad/e3_missile.scad # 2x (або металевий Ø2.5 стрижень)
+openscad -D 'part="nose"' -o cad/out/e3_nose.stl cad/e3_missile.scad   # 1
+openscad -D 'part="body"' -o cad/out/e3_body.stl cad/e3_missile.scad   # 1
+openscad -D 'part="tail"' -o cad/out/e3_tail.stl cad/e3_missile.scad   # 1 (гориз.стаб + кіль + моторама)
+openscad -D 'part="tray"' -o cad/out/e3_tray.stl cad/e3_missile.scad   # 1 (лоток обладнання)
+openscad -D 'part="wing"' -o cad/out/e3_wing.stl cad/e3_missile.scad   # 2 (складається; несе CF-пруток)
+openscad -D 'part="control_surface"' -o cad/out/e3_cs.stl cad/e3_missile.scad  # 3 (елерони+елеватор)
 ```
-PETG, 3–4 периметри, 20–30% gyroid, шар 0.2. Крило — вздовж хорди для міцності.
++ куповані: **CF-пруток Ø8 ×2** (лонжерони), пін-стрижень Ø2.5 ×2 (шарнір). PETG, 3–4 периметри, 20–30% gyroid, 0.2 мм.
 
 ## Складане крило + пуск із труби (шарнір змодельовано)
 - У корені кожної половини — **пін-шарнір** (барабан + пін Ø2.5, вісь складання = товщина крила); крило **складається назад** уздовж фюзеляжу.
