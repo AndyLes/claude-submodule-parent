@@ -44,12 +44,30 @@ def _publish(cmd):
         _bus["b"].publish(TOPIC_CMD, json.dumps(cmd))
 
 
+def wire(bus):
+    """Підписати _on_det на шину (реальну або тестову) і запам'ятати її для публікації."""
+    bus.subscribe(TOPIC_DET, _on_det)
+    _bus["b"] = bus
+    return bus
+
+
 def start(host="127.0.0.1", port=1883):
-    """Під'єднати bus і підписатися на детекції. Викликати перед запуском сервера."""
-    b = Bus(host, port)
-    b.subscribe(TOPIC_DET, _on_det)
-    _bus["b"] = b
-    return b
+    """Створити реальний MQTT-bus і під'єднати оркестратор."""
+    return wire(Bus(host, port))
+
+
+def operator_action(action, key=None):
+    """Дія оператора по цілі: OK (пуск), ABORT (скасувати; без id -> усі), CLEAR (прибрати вирішене)."""
+    if action == "OK" and key in engagements:
+        engagements[key].operator_ok()
+        _publish(engagements[key].command())
+    elif action == "ABORT":
+        for k in ([key] if key in engagements else list(engagements)):
+            engagements[k].operator_abort()
+            _publish(engagements[k].command())
+            del engagements[k]
+    elif action == "CLEAR" and key in engagements:
+        del engagements[key]
 
 
 def _state():
@@ -64,19 +82,7 @@ async def ws(sock: WebSocket):
             msg = json.loads(await sock.receive_text())
         except (ValueError, TypeError):
             continue                       # одна зіпсована рамка не має вбивати консоль
-        act = msg.get("action")
-        key = msg.get("id")
-        if act == "OK" and key in engagements:
-            engagements[key].operator_ok()
-            _publish(engagements[key].command())
-        elif act == "ABORT":
-            targets = [key] if key in engagements else list(engagements)  # без id -> усі (паніка)
-            for k in targets:
-                engagements[k].operator_abort()
-                _publish(engagements[k].command())
-                del engagements[k]         # звільняємо слот цілі
-        elif act == "CLEAR" and key in engagements:
-            del engagements[key]           # оператор позначив постріл вирішеним
+        operator_action(msg.get("action"), msg.get("id"))
         await sock.send_text(json.dumps(_state()))
 
 

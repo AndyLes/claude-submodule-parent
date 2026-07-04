@@ -1,3 +1,7 @@
+import json
+
+from cuas.common.bus import TOPIC_CMD
+
 _ENDPOINTS = {"E1": "cuas/effectors/e1_net/cmd", "E2": "cuas/effectors/e2_ram/cmd"}
 
 
@@ -10,3 +14,11 @@ def route(cmd: dict) -> str:
     if eff not in _ENDPOINTS:
         raise ValueError(f"route: unknown/missing effector {eff!r} in {cmd!r}")
     return _ENDPOINTS[eff]
+
+
+def wire_dispatcher(bus):
+    """Підписатися на TOPIC_CMD і маршрутизувати кожну команду C2 на топік ефектора."""
+    def _route_cmd(js):
+        bus.publish(route(json.loads(js)), js)
+    bus.subscribe(TOPIC_CMD, _route_cmd)
+    return _route_cmd
