@@ -8,3 +8,13 @@ def test_fpv_tight_margin_fails_when_detected_late():
 
 def test_max_range_monotonic_in_speed():
     assert max_engage_range(v_t=30, v_i=90, latency_s=1.0) > max_engage_range(v_t=30, v_i=60, latency_s=1.0)
+
+
+def test_hovering_target_does_not_crash():
+    # зависаючий квадрокоптер (v_t=0) не має ділити на нуль
+    assert feasible(v_t=0, v_i=80, latency_s=1.5, detect_rng_m=800) is True
+
+
+def test_max_range_uses_latency():
+    # більша латентність -> потрібно виявляти далі (більший корисний рубіж)
+    assert max_engage_range(v_t=30, v_i=90, latency_s=3.0) > max_engage_range(v_t=30, v_i=90, latency_s=1.0)

@@ -21,10 +21,14 @@ _bus = {"b": None}
 def _on_det(js):
     d = Detection.from_json(js)
     trk = fusion.update(d)
-    if trk and not in_no_fire(trk.az_deg, NO_FIRE):
-        sol = firing_solution(trk)
-        if sol:
-            current["eng"] = Engagement(sol)   # чекає OK у консолі
+    if not trk or in_no_fire(trk.az_deg, NO_FIRE):
+        return
+    eng = current["eng"]
+    if eng is not None and eng.state in ("AWAIT_OK", "LAUNCHED"):
+        return  # не затираємо активне заручення (очікує оператора / у польоті)
+    sol = firing_solution(trk)
+    if sol:
+        current["eng"] = Engagement(sol)   # чекає OK у консолі
 
 
 def start(host="127.0.0.1", port=1883):
