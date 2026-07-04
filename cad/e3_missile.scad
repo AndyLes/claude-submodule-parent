@@ -37,6 +37,8 @@ module wing_knuckle(sx){                       // fuselage side knuckle (axis Y)
              translate([2,-9,-14]) cube([6,18,5]); }             // deploy stop
     translate([0,-8,0]) rotate([-90,0,0]) cylinder(h=16,d=pin_d,$fn=20);       // pin bore
     translate([6,-12,0]) rotate([-90,0,0]) cylinder(h=24,d=3.2,$fn=16);        // lock detent seat
+    translate([0,-7,0]) rotate([-90,0,0]) cylinder(h=6,d=8,$fn=24);            // torsion-spring seat (coils around pin)
+    translate([-6,-3,-3]) rotate([0,90,0]) cylinder(h=8,d=1.8,$fn=12);         // spring-leg anchor (fuselage side)
   }
 }
 module fuselage(){
