@@ -76,3 +76,16 @@ def tube_id_required_mm(body_d_mm, tail_fin_span_mm, wing_fold_thick_mm):
     """Потрібний внутрішній діаметр пускової труби: фюзеляж + найбільший
     нескладений виступ (фіксовані фіни або складене крило) з обох боків."""
     return body_d_mm + 2 * max(tail_fin_span_mm, wing_fold_thick_mm)
+
+
+def component_fits_body(size_lwh, body_w_mm, body_h_mm, wall_mm):
+    """Чи влазить компонент [L,W,H] у поперечник корпусу (W,H у внутрішній перетин)."""
+    return size_lwh[1] <= body_w_mm - 2 * wall_mm and size_lwh[2] <= body_h_mm - 2 * wall_mm
+
+
+def folded_tube_id_required_mm(body_w_mm, root_chord_mm, tail_fin_span_mm):
+    """Труба для СКЛАДЕНОГО планера: складене крило кладеться зверху (габарит = хорда),
+    хвостові фіни виступають вбік. Беремо найбільший поперечний габарит."""
+    folded_wing_transverse = max(body_w_mm, root_chord_mm)         # хорда лягає впоперек
+    fins_transverse = body_w_mm + 2 * tail_fin_span_mm
+    return max(folded_wing_transverse, fins_transverse)
