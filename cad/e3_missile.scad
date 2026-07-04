@@ -121,3 +121,6 @@ else if(part=="tail") { intersection(){ fuselage(); translate([-100,-100,nose_le
 else if(part=="components") components();
 else if(part=="pin") cylinder(h=20,d=pin_d-0.15,$fn=20);
 else if(part=="latch") deploy_latch();
+// ---- TEST COUPONS (print these first to validate the fold mechanism) ----
+else if(part=="hinge_fuse"){ wing_knuckle(1); translate([BW/2-3,-16,wing_z+stagger/2-28]) cube([6,32,56]); }  // fuselage knuckle + backing
+else if(part=="hinge_wing") intersection(){ wing_local(); translate([-50,-50,-10]) cube([100,100,70]); }        // wing root + short span (fork+spar bore+lock hole)
