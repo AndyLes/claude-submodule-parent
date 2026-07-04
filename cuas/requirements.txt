@@ -1,0 +1,16 @@
+# --- core: needed to run the test suite + C2 orchestrator ---
+numpy
+paho-mqtt
+fastapi
+uvicorn
+pytest
+
+# --- sensor daemons: hardware/heavy, lazy-imported (only when a daemon runs) ---
+sounddevice        # acoustic capture (needs PortAudio + a mic)
+pyrtlsdr           # RF/SDR scan (needs librtlsdr + an RTL-SDR dongle)
+scipy              # Welch PSD for the RF node
+ultralytics        # EO/IR + effector YOLO detect/track
+opencv-python      # video I/O for YOLO
+
+# --- effectors: autopilot link, lazy-imported ---
+pymavlink          # MAVLink offboard control (ArduPilot/PX4, incl. SITL)
