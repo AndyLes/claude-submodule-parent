@@ -1,0 +1,12 @@
+<!-- Консоль оператора: велика кнопка ПУСК і завжди-доступний ABORT -->
+<div id="s">IDLE</div>
+<button onclick="send('OK')">✅ ПУСК (OK)</button>
+<button onclick="send('ABORT')" style="background:#c0392b;color:#fff">🛑 СКАСУВАТИ</button>
+<script>
+const w = new WebSocket(`ws://${location.host}/ws`);
+function send(a){ w.send(JSON.stringify({action:a})) }
+w.onmessage = e => {
+  const d = JSON.parse(e.data);
+  document.getElementById('s').textContent = d.state + ' ' + JSON.stringify(d.sol || {});
+};
+</script>
