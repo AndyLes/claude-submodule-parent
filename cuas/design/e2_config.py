@@ -2,10 +2,10 @@
 
 # Компоненти: маса + позиція (x уздовж осі ніс(+)<->хвіст, y право, z верх), мм від центру рами
 COMPONENTS = [
-    {"name": "motor_fr", "mass_g": 32, "x_mm": 95, "y_mm": 95, "z_mm": 8},
-    {"name": "motor_fl", "mass_g": 32, "x_mm": 95, "y_mm": -95, "z_mm": 8},
-    {"name": "motor_rr", "mass_g": 32, "x_mm": -95, "y_mm": 95, "z_mm": 8},
-    {"name": "motor_rl", "mass_g": 32, "x_mm": -95, "y_mm": -95, "z_mm": 8},
+    {"name": "motor_fr", "mass_g": 32, "x_mm": 78, "y_mm": 78, "z_mm": 8},
+    {"name": "motor_fl", "mass_g": 32, "x_mm": 78, "y_mm": -78, "z_mm": 8},
+    {"name": "motor_rr", "mass_g": 32, "x_mm": -78, "y_mm": 78, "z_mm": 8},
+    {"name": "motor_rl", "mass_g": 32, "x_mm": -78, "y_mm": -78, "z_mm": 8},
     {"name": "props", "mass_g": 20, "x_mm": 0, "y_mm": 0, "z_mm": 12},
     {"name": "esc_4in1", "mass_g": 30, "x_mm": 0, "y_mm": 0, "z_mm": 0},
     {"name": "fc", "mass_g": 8, "x_mm": 0, "y_mm": 0, "z_mm": 6},
@@ -38,10 +38,15 @@ BATT_CAP_AH = 1.3
 BATT_DOD = 0.85
 BATT_ETA = 0.85
 
+# Геометрія рами (5" true-X)
+WHEELBASE_MM = 220.0       # діагональ мотор-мотор
+MOTOR_MOUNT_MM = 16.0      # монтаж мотора (16x16 M3, для 2207)
+STACK_MOUNT_MM = 30.5      # монтаж стека (30.5x30.5 M3)
+
 # Рама/промінь (PETG) — для резонансної перевірки
 ARM_W_MM = 7.0             # ширина променя
 ARM_H_MM = 9.0             # висота (глибока секція)
-ARM_LEN_MM = 95.0          # від центру до мотора
+ARM_LEN_MM = 110.0         # від центру до мотора (WHEELBASE/2)
 E_PETG_PA = 1.8e9          # модуль Юнга друкованого PETG (консервативно)
 RHO_PETG = 1270.0          # густина PETG, кг/м^3
 MOTOR_MASS_G = 32          # маса на кінці променя (мотор)
