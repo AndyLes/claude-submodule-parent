@@ -1,7 +1,9 @@
-"""C2-оркестратор: приймає Detection -> фузія 2-з-N -> no-fire -> вогневе рішення ->
-чекає на оператора (OK/ABORT) через WS-консоль -> публікує команду ефектору.
+"""C2-оркестратор: Detection -> фузія 2-з-N -> no-fire -> вогневе рішення ->
+оператор OK/ABORT/CLEAR (по цілях) через WS-консоль -> команда ефектору.
 
-Bus створюється лениво у start(), щоб `import cuas.c2.server` не потребував брокера."""
+Заручення тримаються ПО ЦІЛЯХ (bearing-сектор), тож пуск по одній цілі не
+робить систему «глухою» до інших. Bus створюється лениво у start(), щоб
+`import cuas.c2.server` не потребував брокера."""
 import json
 
 from fastapi import FastAPI, WebSocket
@@ -14,8 +16,13 @@ from cuas.c2.engagement import Engagement
 app = FastAPI()
 fusion = Fusion()
 NO_FIRE = [(170, 200)]           # приклад: заборонений сектор (населена зона)
-current = {"eng": None}
+AZ_SECTOR = 15.0                 # ширина сектора цілі для ключа заручення
+engagements = {}                 # target_key -> Engagement
 _bus = {"b": None}
+
+
+def target_key(az_deg: float) -> str:
+    return str(int((az_deg % 360) // AZ_SECTOR))
 
 
 def _on_det(js):
@@ -23,12 +30,18 @@ def _on_det(js):
     trk = fusion.update(d)
     if not trk or in_no_fire(trk.az_deg, NO_FIRE):
         return
-    eng = current["eng"]
-    if eng is not None and eng.state in ("AWAIT_OK", "LAUNCHED"):
-        return  # не затираємо активне заручення (очікує оператора / у польоті)
+    key = target_key(trk.az_deg)
+    active = engagements.get(key)
+    if active is not None and active.state in ("AWAIT_OK", "LAUNCHED"):
+        return  # не затираємо активне заручення по ЦІЙ цілі (інші сектори — вільні)
     sol = firing_solution(trk)
     if sol:
-        current["eng"] = Engagement(sol)   # чекає OK у консолі
+        engagements[key] = Engagement({**sol, "target": key})
+
+
+def _publish(cmd):
+    if _bus["b"] and cmd:
+        _bus["b"].publish(TOPIC_CMD, json.dumps(cmd))
 
 
 def start(host="127.0.0.1", port=1883):
@@ -39,22 +52,32 @@ def start(host="127.0.0.1", port=1883):
     return b
 
 
+def _state():
+    return {"engagements": {k: {"state": e.state, "sol": e.sol} for k, e in engagements.items()}}
+
+
 @app.websocket("/ws")
 async def ws(sock: WebSocket):
     await sock.accept()
     while True:
-        act = json.loads(await sock.receive_text()).get("action")
-        eng = current["eng"]
-        if eng and act == "OK":
-            eng.operator_ok()
-            if _bus["b"]:
-                _bus["b"].publish(TOPIC_CMD, json.dumps(eng.command()))
-        if eng and act == "ABORT":
-            eng.operator_abort()
-            if _bus["b"]:
-                _bus["b"].publish(TOPIC_CMD, json.dumps(eng.command()))
-        await sock.send_text(json.dumps({"state": eng.state if eng else "IDLE",
-                                         "sol": eng.sol if eng else None}))
+        try:
+            msg = json.loads(await sock.receive_text())
+        except (ValueError, TypeError):
+            continue                       # одна зіпсована рамка не має вбивати консоль
+        act = msg.get("action")
+        key = msg.get("id")
+        if act == "OK" and key in engagements:
+            engagements[key].operator_ok()
+            _publish(engagements[key].command())
+        elif act == "ABORT":
+            targets = [key] if key in engagements else list(engagements)  # без id -> усі (паніка)
+            for k in targets:
+                engagements[k].operator_abort()
+                _publish(engagements[k].command())
+                del engagements[k]         # звільняємо слот цілі
+        elif act == "CLEAR" and key in engagements:
+            del engagements[key]           # оператор позначив постріл вирішеним
+        await sock.send_text(json.dumps(_state()))
 
 
 if __name__ == "__main__":
