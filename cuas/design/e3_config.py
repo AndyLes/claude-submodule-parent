@@ -16,11 +16,11 @@ COMPONENTS = [
     {"name": "fc_f405wing", "mass_g": 10, "x_mm": 80},
     {"name": "esc_50a", "mass_g": 30, "x_mm": -260},
     {"name": "rx_elrs", "mass_g": 3, "x_mm": 60},
-    {"name": "battery_4s6500", "mass_g": 570, "x_mm": 95},
+    {"name": "battery_6s3500", "mass_g": 500, "x_mm": 95},         # менший пак: -70г, слимкіший фюзеляж
     {"name": "motor_pusher", "mass_g": 60, "x_mm": -330},
     {"name": "servos_3x_mg90s", "mass_g": 27, "x_mm": -20},        # 2 елерони + 1 елеватор
     {"name": "wing_folding_monoplane", "mass_g": 180, "x_mm": 0},  # більше крило + шарнір/пружина
-    {"name": "fuselage_petg", "mass_g": 210, "x_mm": -20},
+    {"name": "fuselage_petg", "mass_g": 185, "x_mm": -20},         # слимкіший (50мм)
     {"name": "tail_fins_petg", "mass_g": 45, "x_mm": -260},        # малі фіксовані фіни
 ]
 
@@ -52,7 +52,7 @@ TAIL_AREA_DM2 = 4.5
 TAIL_ARM_MM = 280.0
 
 # Геометрія тубуса / складання
-BODY_D_MM = 58.0          # діаметр фюзеляжу
+BODY_D_MM = 50.0          # діаметр фюзеляжу (слимкіший під 6S 3500)
 TAIL_FIN_SPAN_MM = 35.0   # виступ фіксованого фіна (в трубу)
 WING_FOLD_THICK_MM = 12.0 # товщина складеного крила збоку фюзеляжу
 

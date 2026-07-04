@@ -6,7 +6,7 @@
 // Units: mm.
 
 /* ---- params ---- */
-body_d    = 58;
+body_d    = 50;      // slim fuselage (6S 3500 pack)
 wall      = 2.4;
 nose_len  = 130;
 body_len  = 300;
@@ -49,7 +49,7 @@ module fuselage() {
     fuselage_outer();
     translate([0,0, nose_len*0.55]) cylinder(h = body_len + nose_len*0.45 + 1, d = body_d - 2*wall); // bay
     translate([0,0, nose_len - 8]) cylinder(h = 40, d = cam_d);                                        // camera bore
-    translate([-22, body_d/2 - wall - 1, nose_len + 40]) cube([44, 10, 150]);                          // battery hatch
+    translate([-18, body_d/2 - wall - 1, nose_len + 40]) cube([36, 10, 150]);                          // battery hatch
     translate([0,0, total_len - 24]) cylinder(h = 30, d = motor_d);                                    // motor bore
     // wing spar tunnel (folding wing hinge passes through) + aileron servo pockets
     translate([-body_d/2-1, -6, wing_z-6]) cube([body_d+2, 12, 12]);                                   // spar tunnel
@@ -70,6 +70,30 @@ module monoplane_wing() {                      // two big panels L/R (deployed)
   for (a = [90,270]) rotate([0,0,a]) translate([0, body_d/2 - 3, wing_z - wing_root_c/2])
     panel(wing_semispan, wing_root_c, wing_tip_c, wing_th);
 }
+
+/* ---- folding-wing hinge (fold axis = wing thickness; wing swings out to aft) ---- */
+pin_d   = 2.5;                                  // hinge pin (metal rod / print)
+barrel_l = 24;                                  // hinge barrel length (spring wraps here)
+module wing_hinge_barrel() {                    // local +Y frame at fuselage surface
+  translate([0, body_d/2 - 1, wing_z])
+    rotate([0,90,0])                            // barrel axis -> X (fold axis)
+      difference() {
+        union() {
+          cylinder(h = barrel_l, d = 9, center = true, $fn = 28);         // barrel
+          translate([0, -7, 0]) cube([9, 14, barrel_l], center = true);   // web into fuselage
+        }
+        cylinder(h = barrel_l + 1, d = pin_d, center = true, $fn = 20);   // pin bore
+        translate([6, 0, 0]) cube([6, 6, barrel_l + 1], center = true);   // torsion-spring seat
+      }
+}
+module deploy_stop() {                          // tab the wing rests on at full deploy (90 deg)
+  translate([0, body_d/2 - 1, wing_z - wing_root_c/2 - 6])
+    cube([10, 7, 5], center = true);
+}
+module wing_hinges() {
+  for (a = [90,270]) rotate([0,0,a]) { wing_hinge_barrel(); deploy_stop(); }
+}
+module hinge_pin() { cylinder(h = barrel_l + 6, d = pin_d - 0.15, $fn = 20); }   // separate part
 
 module tail_fins() {                           // 4 small fixed cruciform fins
   for (a = [45,135,225,315]) rotate([0,0,a]) translate([0, body_d/2 - 2, fin_z - fin_root/2])
@@ -96,6 +120,7 @@ module control_surface(chord, span, th) {
 module assembly() {
   fuselage();
   monoplane_wing();
+  wing_hinges();
   tail_fins();
   motor_mount();
 }
@@ -109,3 +134,4 @@ else if (part == "tail") { intersection() { fuselage(); translate([-100,-100, no
 else if (part == "wing") panel(wing_semispan, wing_root_c, wing_tip_c, wing_th);   // print 2x (fold at root)
 else if (part == "tail_fin") panel(fin_span, fin_root, fin_tip, fin_th);
 else if (part == "control_surface") control_surface(cs_chord, wing_semispan * 0.5, wing_th);
+else if (part == "hinge_pin") hinge_pin();
