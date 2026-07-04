@@ -2,29 +2,29 @@ from cuas.design.launch import (launch_energy_j, required_force_n, launch_accel_
                                 pneumatic_pressure_bar, bungee_peak_g, exit_speed_ms,
                                 wing_deploy_margin_ok)
 
+# honest compact-munition numbers: AUW ~1.103 kg, stall ~19.86 m/s, exit ~24.8 m/s (1.25x)
+_M, _V, _L = 1.103, 24.8, 1.6
+
 
 def test_energy():
-    assert abs(launch_energy_j(1.183, 13.0) - 0.5 * 1.183 * 169) < 1e-6
+    assert abs(launch_energy_j(_M, _V) - 0.5 * _M * _V ** 2) < 1e-6
 
 
 def test_force_and_accel_consistent():
-    m, v, L = 1.183, 13.0, 1.3
-    f = required_force_n(m, v, L)
-    assert abs(exit_speed_ms(f, L, m) - v) < 1e-6          # оборотність
-    assert 5 < launch_accel_g(v, L) < 9                     # ~6-7 g на 1.3 м
+    f = required_force_n(_M, _V, _L)
+    assert abs(exit_speed_ms(f, _L, _M) - _V) < 1e-6              # оборотність
+    assert 15 < launch_accel_g(_V, _L) < 25                       # ~20 g на 1.6 м (ОСЬОВЕ, крила складені)
 
 
-def test_pneumatic_pressure_is_low():
-    # ~77 Н на ~40мм поршень -> низький тиск (< 2 бар)
-    p = pneumatic_pressure_bar(77, 40)
-    assert 0.3 < p < 2.0
+def test_pneumatic_pressure_low_even_big_bore():
+    f = required_force_n(_M, _V, _L)
+    assert pneumatic_pressure_bar(f, 130) < 1.0                   # 130мм повнопрохідний поршень -> низький тиск
 
 
-def test_bungee_peaks_higher_than_pneumatic():
-    avg = launch_accel_g(13.0, 1.3)
-    assert bungee_peak_g(avg) > avg                         # бунджі б'є вищим піком
+def test_bungee_peaks_higher():
+    assert bungee_peak_g(launch_accel_g(_V, _L)) > launch_accel_g(_V, _L)
 
 
 def test_deploy_margin():
-    assert wing_deploy_margin_ok(13.0, 9.06) is True
-    assert wing_deploy_margin_ok(10.0, 9.06) is False
+    assert wing_deploy_margin_ok(24.8, 19.86) is True            # схід з запасом над зривом
+    assert wing_deploy_margin_ok(20.0, 19.86) is False

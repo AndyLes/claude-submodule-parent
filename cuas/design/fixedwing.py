@@ -6,6 +6,18 @@ import math
 G = 9.80665
 
 
+def wing_area_dm2(semispan_mm, root_c_mm, tip_c_mm):
+    """Площа крила (2 консолі) з ГЕОМЕТРІЇ — єдине джерело правди для CAD і розрахунку.
+    Трапеція: площа = 2 * піврозмах * середня хорда."""
+    avg_c = (root_c_mm + tip_c_mm) / 2.0
+    return 2.0 * (semispan_mm / 100.0) * (avg_c / 100.0)   # мм -> дм, дм^2
+
+
+def wing_mac_mm(root_c_mm, tip_c_mm):
+    """Середня аеродинамічна хорда (спрощено — середня трапеції)."""
+    return (root_c_mm + tip_c_mm) / 2.0
+
+
 def wing_loading_g_dm2(auw_g, s_dm2):
     return auw_g / s_dm2
 

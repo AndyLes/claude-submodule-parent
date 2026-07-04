@@ -1,17 +1,12 @@
-"""ТТХ-звіт E3 (пушер-інтерсептор, складане монопланне крило) + CLI.
-Проєкт під 6S (розрахунковий Vmax), тест на 4S. Порівняння тугості розвороту з хрестом."""
+"""ТТХ-звіт E3 (компактний тубусний пушер-інтерсептор) + CLI.
+Площа/MAC крила ОБЧИСЛЮЮТЬСЯ з геометрії (CAD ↔ розрахунок узгоджені). Проєкт 6S, тест 4S."""
 from cuas.design import e3_config as cfg
 from cuas.design.mass import auw_g, center_of_mass_mm
 from cuas.design.ram import kinetic_energy_j
-from cuas.design.fixedwing import (wing_loading_g_dm2, stall_speed_ms, launch_speed_ms,
-                                   pitch_speed_ms, flies, glide_range_km, tail_volume_coeff,
-                                   dynamic_pressure_pa, hinge_moment_nm, servo_torque_required_kgcm,
-                                   turn_radius_min_m, tube_id_required_mm)
-
-# Довідка: попередня хрест-схема (для порівняння тугості розвороту)
-_CRUCIFORM_AUW_KG = 1.249
-_CRUCIFORM_S_M2 = 0.14
-_CRUCIFORM_CL = 0.9
+from cuas.design.fixedwing import (wing_area_dm2, wing_mac_mm, wing_loading_g_dm2, stall_speed_ms,
+                                   launch_speed_ms, pitch_speed_ms, flies, glide_range_km,
+                                   tail_volume_coeff, dynamic_pressure_pa, hinge_moment_nm,
+                                   servo_torque_required_kgcm, turn_radius_min_m, tube_id_required_mm)
 
 
 def build_report(pitch_in=None, kv=None):
@@ -21,17 +16,18 @@ def build_report(pitch_in=None, kv=None):
     auw = auw_g(cfg.COMPONENTS)
     auw_kg = auw / 1000.0
     com = center_of_mass_mm([{**c, "y_mm": 0, "z_mm": 0} for c in cfg.COMPONENTS])
-    s_m2 = cfg.WING_AREA_DM2 / 100.0
+
+    area_dm2 = wing_area_dm2(cfg.WING_SEMISPAN_MM, cfg.WING_ROOT_C_MM, cfg.WING_TIP_C_MM)  # з геометрії
+    mac = wing_mac_mm(cfg.WING_ROOT_C_MM, cfg.WING_TIP_C_MM)
+    s_m2 = area_dm2 / 100.0
 
     stall = stall_speed_ms(auw_kg, s_m2, cfg.CL_MAX)
     launch = launch_speed_ms(stall, cfg.LAUNCH_MARGIN)
     top6s = pitch_speed_ms(kv, cfg.V_BATT_FULL, pitch_in, cfg.ETA_RPM)
     top4s = pitch_speed_ms(kv, cfg.V_BATT_TEST_FULL, pitch_in, cfg.ETA_RPM)
     ke = kinetic_energy_j(auw_kg, top6s)
-    vt = tail_volume_coeff(cfg.TAIL_AREA_DM2, cfg.TAIL_ARM_MM, cfg.WING_AREA_DM2, cfg.WING_MAC_MM)
-
+    vt = tail_volume_coeff(cfg.TAIL_AREA_DM2, cfg.TAIL_ARM_MM, area_dm2, mac)
     r_turn = turn_radius_min_m(auw_kg, s_m2, cfg.CL_MAX)
-    r_cruciform = turn_radius_min_m(_CRUCIFORM_AUW_KG, _CRUCIFORM_S_M2, _CRUCIFORM_CL)
 
     q = dynamic_pressure_pa(top6s)
     hm = hinge_moment_nm(cfg.CS_HINGE_COEFF, q, cfg.CS_AREA_DM2 / 100.0, cfg.CS_CHORD_MM / 1000.0)
@@ -41,7 +37,8 @@ def build_report(pitch_in=None, kv=None):
     return {
         "auw_g": round(auw, 1),
         "cg_x_mm": round(com[0], 1),
-        "wing_loading_g_dm2": round(wing_loading_g_dm2(auw, cfg.WING_AREA_DM2), 1),
+        "wing_area_dm2": round(area_dm2, 2),                 # з геометрії CAD
+        "wing_loading_g_dm2": round(wing_loading_g_dm2(auw, area_dm2), 1),
         "stall_kmh": round(stall * 3.6, 1),
         "launch_kmh": round(launch * 3.6, 1),
         "top_speed_6s_kmh": round(top6s * 3.6, 1),
@@ -49,9 +46,7 @@ def build_report(pitch_in=None, kv=None):
         "flies_6s": flies(top6s, stall),
         "flies_4s_test": flies(top4s, stall),
         "ram_ke_6s_j": round(ke, 0),
-        "turn_radius_m": round(r_turn, 1),
-        "turn_radius_cruciform_m": round(r_cruciform, 1),
-        "turn_tighter_x": round(r_cruciform / r_turn, 2),   # у скільки разів тугіший розворот
+        "turn_radius_m": round(r_turn, 1),                  # широкий (компакт) -> ставка на pixel-lock
         "glide_km_from_500m": round(glide_range_km(500, cfg.LD_GLIDE), 2),
         "tail_volume_coeff": round(vt, 2),
         "tail_ok": 0.35 <= vt <= 0.7,
