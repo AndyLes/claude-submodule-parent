@@ -58,11 +58,14 @@ module airfoil(chord,t){
 }
 module wing_local(){                            // span +Z, chord +X, thick Y ; root at Z=0
   difference(){
-    linear_extrude(height=wing_ss, scale=wing_tc/wing_rc) airfoil(wing_rc, wing_tpc);
-    translate([wing_rc*0.3,0,-1]) cylinder(h=wing_ss+2,d=spar_d,$fn=20);      // CF spar bore (30% chord)
+    union(){
+      linear_extrude(height=wing_ss, scale=wing_tc/wing_rc) airfoil(wing_rc, wing_tpc);
+      for(sy=[-1,1]) translate([wing_rc*0.3, sy*8, -5]) rotate([-90,0,0]) cylinder(h=4,d=12,$fn=24); // hinge fork
+    }
+    translate([wing_rc*0.3,0,-1]) cylinder(h=wing_ss+2,d=spar_d,$fn=20);                 // CF spar bore (30% chord)
+    translate([wing_rc*0.3,-14,-5]) rotate([-90,0,0]) cylinder(h=28,d=pin_d,$fn=20);     // hinge pin bore (Y)
+    translate([wing_rc*0.3+5,-14,-5]) rotate([-90,0,0]) cylinder(h=28,d=3.2,$fn=16);     // deploy-latch lock hole
   }
-  // root hinge fork (two knuckles straddling fuselage knuckle)
-  for(sy=[-1,1]) translate([wing_rc*0.3, sy*8, -5]) rotate([0,0,0]) rotate([-90,0,0]) cylinder(h=4,d=12,$fn=24);
 }
 module wing_solid(){ wing_local(); }            // export: print orientation
 module wing_R(){ translate([BW/2-6,0,wing_z+stagger/2]) rotate([0,90,0]) translate([-wing_rc/2,0,0]) wing_local(); }
@@ -78,6 +81,20 @@ module motor_mount(){
   translate([0,0,total-wall]) difference(){
     cylinder(h=wall+4,d=motor_d+8); translate([0,0,-0.1]) cylinder(h=wall+5,d=motor_d-6);
     for(a=[0:90:359]) rotate([0,0,a]) translate([8,0,-0.1]) cylinder(h=wall+5,d=3.2);
+  }
+}
+
+/* ---- DEPLOY LATCH: spring detent plunger, auto-locks the wing at 90 deg ----
+   Wing swings out -> its edge cams the chamfered nose back against a small
+   compression spring (bought, ~D3x10) -> at 90 deg the wing lock-hole aligns
+   and the spring snaps the plunger in -> LOCKED. Press the tab to retract & fold. */
+latch_d=3.0; latch_L=16;
+module deploy_latch(){
+  union(){
+    cylinder(h=2.5, d1=latch_d-1.2, d2=latch_d, $fn=24);          // chamfered nose (cams over wing)
+    translate([0,0,2.5]) cylinder(h=latch_L-2.5, d=latch_d, $fn=24);
+    translate([0,0,latch_L]) cylinder(h=2, d=latch_d+2.2, $fn=24);   // spring shoulder
+    translate([0,0,latch_L+2]) cylinder(h=2.5, d=latch_d+4.5, $fn=24); // release tab (press to unlock)
   }
 }
 
@@ -101,3 +118,4 @@ else if(part=="wing") wing_solid();
 else if(part=="tail") { intersection(){ fuselage(); translate([-100,-100,nose_len+body_len]) cube([200,200,tail_len]); } tailfins(); motor_mount(); }
 else if(part=="components") components();
 else if(part=="pin") cylinder(h=20,d=pin_d-0.15,$fn=20);
+else if(part=="latch") deploy_latch();
