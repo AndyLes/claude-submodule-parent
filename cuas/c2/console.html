@@ -1,12 +1,20 @@
-<!-- Консоль оператора: велика кнопка ПУСК і завжди-доступний ABORT -->
-<div id="s">IDLE</div>
-<button onclick="send('OK')">✅ ПУСК (OK)</button>
-<button onclick="send('ABORT')" style="background:#c0392b;color:#fff">🛑 СКАСУВАТИ</button>
+<!-- Консоль оператора: список активних цілей; по кожній — ПУСК / СКАСУВАТИ -->
+<div id="s">—</div>
+<div id="list"></div>
 <script>
 const w = new WebSocket(`ws://${location.host}/ws`);
-function send(a){ w.send(JSON.stringify({action:a})) }
+function act(a, id){ w.send(JSON.stringify({action:a, id})) }
 w.onmessage = e => {
-  const d = JSON.parse(e.data);
-  document.getElementById('s').textContent = d.state + ' ' + JSON.stringify(d.sol || {});
+  const engs = (JSON.parse(e.data).engagements) || {};
+  const el = document.getElementById('list'); el.innerHTML = '';
+  for (const [k, v] of Object.entries(engs)) {
+    const row = document.createElement('div');
+    row.textContent = `ціль ${k}: ${v.state} ${JSON.stringify(v.sol || {})} `;
+    const ok = document.createElement('button'); ok.textContent = '✅ ПУСК'; ok.onclick = () => act('OK', k);
+    const ab = document.createElement('button'); ab.textContent = '🛑 СКАСУВАТИ';
+    ab.style = 'background:#c0392b;color:#fff'; ab.onclick = () => act('ABORT', k);
+    row.append(ok, ab); el.append(row);
+  }
+  document.getElementById('s').textContent = Object.keys(engs).length ? '' : 'немає активних цілей';
 };
 </script>

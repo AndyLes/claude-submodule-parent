@@ -32,8 +32,11 @@ def run(model_path="cuas/sensors/eoir/uav_yolo.pt"):
             continue
         az, el = pixel_to_azel(cx, cy, r.orig_shape[1], r.orig_shape[0], ptz.az, ptz.el, ptz.hfov, ptz.vfov)
         ptz.center_on(cx, cy)  # тримати ціль у центрі (замкнений трек)
+        # стабільний id з трекера, якщо є; інакше не колапсуємо все в один "eo0"
+        tid = b.id
+        track_id = f"eo{int(tid[0].item())}" if tid is not None else f"eo?{int(cx)}_{int(cy)}"
         bus.publish(
             TOPIC_TRK,
-            Track(track_id=f"eo{int(b.id or 0)}", az_deg=az, el_deg=el, rng_m=-1.0,
+            Track(track_id=track_id, az_deg=az, el_deg=el, rng_m=-1.0,
                   cls=cls, conf=conf, sources=["eoir"], t_unix=time.time()).to_json(),
         )

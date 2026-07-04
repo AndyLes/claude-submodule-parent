@@ -27,7 +27,7 @@ tests/       pytest suite (pure-logic, no hardware)
 python -m venv .venv && .venv/Scripts/pip install -r requirements.txt   # (Windows)
 python -m pytest cuas/tests/ -v
 ```
-28 tests, all pure-logic — **no hardware, broker, or heavy models needed** to run them.
+36 tests, all pure-logic — **no hardware, broker, or heavy models needed** to run them.
 Heavy/hardware deps (sounddevice, pyrtlsdr, scipy, ultralytics, pymavlink) are
 **lazy-imported inside the daemon `run()` functions**, so the algorithmic core is
 importable and testable on any machine.
@@ -36,6 +36,9 @@ importable and testable on any machine.
 - **Unit-tested (green):** message schemas, intercept model, acoustic scorer,
   RF band detector, EO/IR pixel→az/el, fusion 2-of-N, effector selection,
   no-fire arcs, engagement OK/ABORT, guidance law, net-trigger gate, dispatch.
+- **Software-in-the-loop integration (green):** full pipeline over an in-memory
+  bus — synthetic detections → fusion → per-target engagement → operator OK →
+  `dispatch` routes the command to the correct effector topic (`tests/test_integration.py`).
 - **Hardware/field (see plan M3.2/M4.2/M5/M6):** live sensor ranges, PTZ slew
   accuracy, ArduPilot SITL + real flight, net capture + reuse, safety (no-fire,
   ABORT latency, fail-safe), cost-exchange verification. **Inert targets only —
