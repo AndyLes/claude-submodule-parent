@@ -1,5 +1,6 @@
 from cuas.design.fixedwing import (wing_loading_g_dm2, stall_speed_ms, launch_speed_ms,
-                                   pitch_speed_ms, flies, glide_range_km, tail_volume_coeff)
+                                   pitch_speed_ms, flies, glide_range_km, tail_volume_coeff,
+                                   dynamic_pressure_pa, hinge_moment_nm, servo_torque_required_kgcm)
 
 
 def test_wing_loading():
@@ -37,3 +38,17 @@ def test_glide_range():
 
 def test_tail_volume_positive():
     assert tail_volume_coeff(4.5, 280, 14, 140) > 0
+
+
+def test_servo_torque_within_mg90s_at_200kmh():
+    # ~200 км/год (55 м/с): MG90S (1.8 кг*см) має тримати малу кермову поверхню
+    q = dynamic_pressure_pa(55.0)
+    hm = hinge_moment_nm(0.22, q, 0.0035, 0.03)
+    torque = servo_torque_required_kgcm(hm)
+    assert q > 0 and hm > 0 and 0 < torque < 1.8
+
+
+def test_higher_speed_needs_more_servo_torque():
+    hm_fast = hinge_moment_nm(0.22, dynamic_pressure_pa(55.0), 0.0035, 0.03)
+    hm_slow = hinge_moment_nm(0.22, dynamic_pressure_pa(37.0), 0.0035, 0.03)
+    assert servo_torque_required_kgcm(hm_fast) > servo_torque_required_kgcm(hm_slow)

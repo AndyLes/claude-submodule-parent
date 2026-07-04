@@ -38,3 +38,17 @@ def glide_range_km(altitude_m, ld):
 def tail_volume_coeff(s_tail_dm2, arm_mm, s_wing_dm2, mac_mm):
     """Коефіцієнт хвостового обсягу V_t = (S_tail*l)/(S_wing*MAC). Норма ~0.35-0.6."""
     return (s_tail_dm2 * arm_mm) / (s_wing_dm2 * mac_mm)
+
+
+def dynamic_pressure_pa(v_ms, rho=1.225):
+    return 0.5 * rho * v_ms ** 2
+
+
+def hinge_moment_nm(ch, q_pa, cs_area_m2, cs_chord_m):
+    """Шарнірний момент кермової поверхні H = Ch * q * S_cs * c_cs (Н*м)."""
+    return ch * q_pa * cs_area_m2 * cs_chord_m
+
+
+def servo_torque_required_kgcm(hinge_moment_nm, horn_ratio=1.0):
+    """Потрібний момент сервоприводу, кг*см (1 Н*м = 10.197 кг*см)."""
+    return hinge_moment_nm * horn_ratio * 10.197

@@ -46,7 +46,24 @@ module fuselage() {
     translate([0,0, nose_len - 8]) cylinder(h = 40, d = cam_d);                                        // camera bore
     translate([-22, body_d/2 - wall - 1, nose_len + 40]) cube([44, 10, 150]);                          // battery hatch
     translate([0,0, total_len - 24]) cylinder(h = 30, d = motor_d);                                    // motor bore
+    // 4x servo pockets at the tail fins (MG90S), pushrod exits to control surface
+    for (a = [45,135,225,315]) rotate([0,0,a]) translate([body_d/2 - 15, -12, fin_z - 12]) cube([16, 24, 24]);
   }
+}
+
+cs_chord = fin_root * 0.3;   // rear ~30% of the fin = movable control surface
+
+module control_surface(chord, span, th) {           // hinged trailing-edge flap
+  difference() {
+    panel(span, chord, chord * 0.6, th);
+    translate([-th/2 - 0.1, 4, 4]) cube([th + 0.2, 2.5, 6]);   // control-horn slot
+  }
+}
+
+module tail_control_surfaces() {                    // 4 flaps at the fin trailing edges (neutral)
+  for (a = [45,135,225,315])
+    rotate([0,0,a]) translate([0, body_d/2 - 2, fin_z + fin_root/2 - cs_chord/2])
+      control_surface(cs_chord, fin_span * 0.9, fin_th);
 }
 
 module panel(span, root, tip, th) {                 // tapered swept plate, extends +Y
@@ -74,6 +91,7 @@ module assembly() {
   fuselage();
   cruciform(wing_span, wing_root, wing_tip, wing_th, wing_z);
   cruciform(fin_span, fin_root, fin_tip, fin_th, fin_z);
+  tail_control_surfaces();
   motor_mount();
 }
 
@@ -87,3 +105,4 @@ else if (part == "tail") { intersection() { fuselage(); translate([-100,-100, no
                            cruciform(fin_span, fin_root, fin_tip, fin_th, fin_z); motor_mount(); }
 else if (part == "wing") panel(wing_span, wing_root, wing_tip, wing_th);
 else if (part == "fin") panel(fin_span, fin_root, fin_tip, fin_th);
+else if (part == "control_surface") control_surface(cs_chord, fin_span * 0.9, fin_th);   // print 4x
