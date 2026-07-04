@@ -52,3 +52,15 @@ def hinge_moment_nm(ch, q_pa, cs_area_m2, cs_chord_m):
 def servo_torque_required_kgcm(hinge_moment_nm, horn_ratio=1.0):
     """Потрібний момент сервоприводу, кг*см (1 Н*м = 10.197 кг*см)."""
     return hinge_moment_nm * horn_ratio * 10.197
+
+
+def turn_radius_min_m(auw_kg, s_m2, cl_max, rho=1.225):
+    """Мінімальний радіус усталеного розвороту R = 2m/(rho*S*CL_max) [м].
+    Менший = тугіший розворот = ефективніше перехоплення маневрованої цілі."""
+    return 2 * auw_kg / (rho * s_m2 * cl_max)
+
+
+def tube_id_required_mm(body_d_mm, tail_fin_span_mm, wing_fold_thick_mm):
+    """Потрібний внутрішній діаметр пускової труби: фюзеляж + найбільший
+    нескладений виступ (фіксовані фіни або складене крило) з обох боків."""
+    return body_d_mm + 2 * max(tail_fin_span_mm, wing_fold_thick_mm)

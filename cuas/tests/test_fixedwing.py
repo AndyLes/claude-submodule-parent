@@ -1,6 +1,7 @@
 from cuas.design.fixedwing import (wing_loading_g_dm2, stall_speed_ms, launch_speed_ms,
                                    pitch_speed_ms, flies, glide_range_km, tail_volume_coeff,
-                                   dynamic_pressure_pa, hinge_moment_nm, servo_torque_required_kgcm)
+                                   dynamic_pressure_pa, hinge_moment_nm, servo_torque_required_kgcm,
+                                   turn_radius_min_m, tube_id_required_mm)
 
 
 def test_wing_loading():
@@ -52,3 +53,15 @@ def test_higher_speed_needs_more_servo_torque():
     hm_fast = hinge_moment_nm(0.22, dynamic_pressure_pa(55.0), 0.0035, 0.03)
     hm_slow = hinge_moment_nm(0.22, dynamic_pressure_pa(37.0), 0.0035, 0.03)
     assert servo_torque_required_kgcm(hm_fast) > servo_torque_required_kgcm(hm_slow)
+
+
+def test_bigger_wing_turns_tighter():
+    # більше крило (нижче навантаження) -> менший радіус розвороту
+    big = turn_radius_min_m(1.28, 0.22, 1.05)
+    small = turn_radius_min_m(1.249, 0.14, 0.9)
+    assert big < small
+
+
+def test_tube_id_fits_largest_protrusion():
+    tid = tube_id_required_mm(58, 35, 12)
+    assert tid == 58 + 2 * 35   # фіни виступають більше за складене крило
