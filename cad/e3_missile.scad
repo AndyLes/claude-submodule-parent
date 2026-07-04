@@ -29,17 +29,23 @@ module fuse_solid(){
   hull(){ translate([0,0,nose_len+body_len]) linear_extrude(0.6) rrect(BW,BH,corner_r);
           translate([0,0,total]) linear_extrude(0.6) rrect(motor_d+8,motor_d+8,8); }
 }
-module wing_knuckle(sx){                       // fuselage side knuckle (axis Y), staggered per side
-  zc = wing_z + sx*stagger/2;
-  translate([sx*(BW/2-2),0,zc]) difference(){
-    union(){ translate([0,-6,0]) rotate([-90,0,0]) cylinder(h=12,d=12,$fn=28);
-             translate([-6,-6,-8]) cube([8,12,16]);
-             translate([2,-9,-14]) cube([6,18,5]); }             // deploy stop
-    translate([0,-8,0]) rotate([-90,0,0]) cylinder(h=16,d=pin_d,$fn=20);       // pin bore
-    translate([6,-12,0]) rotate([-90,0,0]) cylinder(h=24,d=3.2,$fn=16);        // lock detent seat
-    translate([0,-7,0]) rotate([-90,0,0]) cylinder(h=6,d=8,$fn=24);            // torsion-spring seat (coils around pin)
-    translate([-6,-3,-3]) rotate([0,90,0]) cylinder(h=8,d=1.8,$fn=12);         // spring-leg anchor (fuselage side)
+/* ---- pin hinge: FORK on fuselage, solid TONGUE on wing root (mate at interface x=0, pin at x=7) ---- */
+tongue_t=10; lug_t=4; gap=tongue_t+1;
+module hinge_fork(){                            // extends +X into the wing; pin along Y at x=7
+  difference(){
+    union(){
+      for(sy=[-1,1]) translate([0, sy*(gap/2+lug_t/2), -12]) cube([17, lug_t, 24]);  // two lugs (gap for tongue)
+      translate([-7,-10,-12]) cube([7,20,24]);                                        // web into fuselage
+      translate([13,-10,-17]) cube([4,20,5]);                                         // deploy stop (90 deg)
+    }
+    translate([7,-16,0]) rotate([-90,0,0]) cylinder(h=32,d=pin_d,$fn=20);   // pin bore Y (through both lugs)
+    translate([13,-16,0]) rotate([-90,0,0]) cylinder(h=32,d=3.2,$fn=16);    // latch detent seat
+    translate([7,-6,0]) rotate([-90,0,0]) cylinder(h=6,d=8,$fn=24);         // torsion-spring seat
+    translate([-8,-3,-4]) rotate([0,90,0]) cylinder(h=8,d=1.8,$fn=12);      // spring-leg anchor
   }
+}
+module wing_knuckle(sx){                        // place fork on fuselage side, staggered
+  translate([sx*(BW/2-2),0,wing_z+sx*stagger/2]) mirror([sx<0?1:0,0,0]) hinge_fork();
 }
 module fuselage(){
   difference(){
@@ -58,15 +64,17 @@ module airfoil(chord,t){
   polygon(concat([for(i=[0:n]) let(x=i/n)[x*chord, yt(x,t)*chord]],
                  [for(i=[n:-1:0]) let(x=i/n)[x*chord,-yt(x,t)*chord]]));
 }
-module wing_local(){                            // span +Z, chord +X, thick Y ; root at Z=0
+wing_tpc14=0.14;                                 // 14% so the Ø8 spar fits (10% would split the wing)
+module wing_local(){                             // span +Z, chord +X, thick Y ; root TONGUE at Z<0
+  spar_x = 15 + wing_rc*0.3;                      // spar at 30% chord (offset by tongue lead-in 15)
   difference(){
     union(){
-      linear_extrude(height=wing_ss, scale=wing_tc/wing_rc) airfoil(wing_rc, wing_tpc);
-      for(sy=[-1,1]) translate([wing_rc*0.3, sy*8, -5]) rotate([-90,0,0]) cylinder(h=4,d=12,$fn=24); // hinge fork
+      translate([15,0,0]) linear_extrude(height=wing_ss, scale=wing_tc/wing_rc) airfoil(wing_rc, wing_tpc14);
+      translate([0,-tongue_t/2,-12]) cube([spar_x+8, tongue_t, 26]);   // SOLID tongue (mates fork; merged w/ airfoil root)
     }
-    translate([wing_rc*0.3,0,-1]) cylinder(h=wing_ss+2,d=spar_d,$fn=20);                 // CF spar bore (30% chord)
-    translate([wing_rc*0.3,-14,-5]) rotate([-90,0,0]) cylinder(h=28,d=pin_d,$fn=20);     // hinge pin bore (Y)
-    translate([wing_rc*0.3+5,-14,-5]) rotate([-90,0,0]) cylinder(h=28,d=3.2,$fn=16);     // deploy-latch lock hole
+    translate([7,-tongue_t/2-1,0]) rotate([-90,0,0]) cylinder(h=tongue_t+2,d=pin_d,$fn=20);  // pin bore Y (mates fork)
+    translate([13,-tongue_t/2-1,0]) rotate([-90,0,0]) cylinder(h=tongue_t+2,d=3.2,$fn=16);   // latch lock hole
+    translate([spar_x,0,-13]) cylinder(h=wing_ss+14,d=spar_d,$fn=20);                         // CF spar bore (roots in tongue)
   }
 }
 module wing_solid(){ wing_local(); }            // export: print orientation
@@ -123,4 +131,4 @@ else if(part=="pin") cylinder(h=20,d=pin_d-0.15,$fn=20);
 else if(part=="latch") deploy_latch();
 // ---- TEST COUPONS (print these first to validate the fold mechanism) ----
 else if(part=="hinge_fuse"){ wing_knuckle(1); translate([BW/2-3,-16,wing_z+stagger/2-28]) cube([6,32,56]); }  // fuselage knuckle + backing
-else if(part=="hinge_wing") intersection(){ wing_local(); translate([-50,-50,-10]) cube([100,100,70]); }        // wing root + short span (fork+spar bore+lock hole)
+else if(part=="hinge_wing") intersection(){ wing_local(); translate([-60,-60,-20]) cube([160,120,90]); }        // wing root TONGUE + short span (spar bore + pin + lock hole)
