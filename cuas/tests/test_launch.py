@@ -2,8 +2,8 @@ from cuas.design.launch import (launch_energy_j, required_force_n, launch_accel_
                                 pneumatic_pressure_bar, bungee_peak_g, exit_speed_ms,
                                 wing_deploy_margin_ok)
 
-# honest compact-munition numbers: AUW ~1.103 kg, stall ~19.86 m/s, exit ~24.8 m/s (1.25x)
-_M, _V, _L = 1.103, 24.8, 1.6
+# honest compact-munition numbers: AUW ~1.103 kg, stall ~19.86 m/s, exit ~27.8 m/s (1.4x, folding wing)
+_M, _V, _L = 1.103, 27.8, 1.8
 
 
 def test_energy():
@@ -26,5 +26,5 @@ def test_bungee_peaks_higher():
 
 
 def test_deploy_margin():
-    assert wing_deploy_margin_ok(24.8, 19.86) is True            # схід з запасом над зривом
+    assert wing_deploy_margin_ok(27.8, 19.86) is True            # 1.4x зрив — запас для розкриття крила
     assert wing_deploy_margin_ok(20.0, 19.86) is False
