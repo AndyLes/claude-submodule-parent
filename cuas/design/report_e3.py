@@ -7,6 +7,8 @@ from cuas.design.fixedwing import (wing_area_dm2, wing_mac_mm, wing_loading_g_dm
                                    launch_speed_ms, pitch_speed_ms, flies, glide_range_km,
                                    tail_volume_coeff, dynamic_pressure_pa, hinge_moment_nm,
                                    servo_torque_required_kgcm, turn_radius_min_m, tube_id_required_mm)
+from cuas.design.thermal import (motor_heat_w, resistive_heat_w, safe_soak_minutes, blended_c_jkgk,
+                                 inlet_mass_flow_kgs, coolant_dt_c, battery_temp_rise_c)
 
 
 def build_report(pitch_in=None, kv=None):
@@ -56,6 +58,41 @@ def build_report(pitch_in=None, kv=None):
     }
 
 
+def build_thermal(v_launch_ms=27.8):
+    """Термо-зведення: соук у трубі (реальний ліміт) + обдув у польоті + батарея."""
+    heat_all = cfg.HEAT_PI_W + cfg.HEAT_VTX_W + cfg.HEAT_FC_W + cfg.HEAT_CAM_W + cfg.HEAT_RX_W
+    heat_gated = cfg.HEAT_PI_IDLE_W + cfg.HEAT_FC_W + cfg.HEAT_CAM_W + cfg.HEAT_RX_W  # VTX off, Pi idle
+    m_fix = cfg.SOAK_LOCAL_MASS_G + cfg.SPREADER_MASS_G
+    c_fix = blended_c_jkgk([cfg.SOAK_LOCAL_MASS_G, cfg.SPREADER_MASS_G],
+                           [cfg.SOAK_LOCAL_C_JKGK, cfg.SPREADER_C_JKGK])
+
+    soak_bare = safe_soak_minutes(heat_all, cfg.SOAK_LOCAL_MASS_G, cfg.SOAK_LOCAL_C_JKGK, cfg.SOAK_DT_ALLOW_C)
+    soak_fixed = safe_soak_minutes(heat_gated, m_fix, c_fix, cfg.SOAK_DT_ALLOW_C)
+
+    esc_heat = resistive_heat_w(cfg.ESC_CURRENT_SPRINT_A, cfg.ESC_R_OHM)
+    bay_heat = esc_heat + heat_all
+    area_cm2 = cfg.INLET_COUNT * cfg.INLET_W_MM * cfg.INLET_DEPTH_MM / 100.0
+    mdot = inlet_mass_flow_kgs(area_cm2, v_launch_ms, cfg.AIR_RHO, cfg.NACA_INLET_EFF)
+    dt_air = coolant_dt_c(bay_heat, mdot / cfg.AIR_RHO, cfg.AIR_RHO, cfg.AIR_CP)
+
+    batt_dT = battery_temp_rise_c(cfg.BATT_CURRENT_SPRINT_A, cfg.BATT_R_OHM, cfg.MISSION_SPRINT_S,
+                                  cfg.BATT_MASS_G, cfg.BATT_C_JKGK)
+    return {
+        "motor_heat_w": round(motor_heat_w(cfg.MOTOR_POWER_IN_SPRINT_W, cfg.MOTOR_EFF), 0),  # обдув ЗЗОВНІ (пуш-проп)
+        "esc_heat_w": round(esc_heat, 1),
+        "bay_heat_flight_w": round(bay_heat, 1),
+        "soak_min_all_on_bare": round(soak_bare, 1),          # усе ON, без розподільника — РЕАЛЬНИЙ ліміт
+        "soak_min_gated_spreader": round(soak_fixed, 1),      # VTX off + Pi idle + алю-розподільник
+        "soak_dwell_ok": soak_fixed >= 15.0,
+        "cool_air_dt_at_launch_c": round(dt_air, 1),
+        "inlet_area_cm2": round(area_cm2, 2),
+        "flight_cooling_ok": dt_air < cfg.COOL_DT_AIR_C,
+        "batt_rise_sprint_c": round(batt_dT, 1),
+        "batt_peak_c": round(cfg.T_AMBIENT_C + batt_dT, 1),
+        "batt_ok_passive": (cfg.T_AMBIENT_C + batt_dT) < cfg.T_BATT_MAX_C,   # короткий політ → без активного
+    }
+
+
 def _print(r, title):
     print(title)
     for k, v in r.items():
@@ -64,6 +101,8 @@ def _print(r, title):
 
 if __name__ == "__main__":
     _print(build_report(), '=== E3 folding-wing interceptor — TTX (design 6S, test 4S; 1200KV + 7x6) ===')
+    print()
+    _print(build_thermal(), '=== THERMAL — soak (tube) / flight airflow / battery ===')
     print()
     bad = build_report(pitch_in=2.0, kv=1250)
     print('--- for comparison, 9x2 prop + X2212-1250 on 4S ---')

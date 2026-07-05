@@ -52,6 +52,19 @@ module hinge_fork(){                            // extends +X into the wing; pin
 module wing_knuckle(sx){                        // place fork on fuselage side, staggered
   translate([sx*(BW/2-2),0,wing_z+sx*stagger/2]) mirror([sx<0?1:0,0,0]) hinge_fork();
 }
+/* ---- COOLING: pusher works as an EXTRACTOR. Flush NACA inlets (submerged -> survive
+   the tube) ram air into the bay; it washes FC->battery->ESC and exits aft louvers into
+   the tail low-pressure zone; the motor breathes via boss slots + prop draft. Pre-launch
+   (sealed tube, ZERO flow) the risk is SOAK -> gate the analog VTX + idle the Pi. */
+inlet_w=11; inlet_l=26; inlet_z=135;
+module naca_inlet(){                                                    // +X side; submerged ramp, opens AFT, breaks through wall at its aft end
+  hull(){
+    translate([BW/2-0.6, -inlet_w*0.12, inlet_z])          cube([2, inlet_w*0.24, 1]);   // fore: shallow, narrow (flush)
+    translate([BW/2-wall-2, -inlet_w/2, inlet_z+inlet_l])  cube([wall+3, inlet_w, 1]);   // aft: full width, THROUGH the wall
+  }
+}
+module exhaust_louvers(){ for(i=[0:2]) translate([0,0,392+i*11]) rotate([0,90,0]) cylinder(h=BW+4,d=5,$fn=16,center=true); }  // vent bay both sides at the ESC
+module motor_cool_slots(){ for(a=[0:60:359]) rotate([0,0,a]) translate([motor_d/2-2,0,total-14]) rotate([0,90,0]) cylinder(h=10,d=3.5,$fn=12); }  // motor breather (prop draft pulls through)
 module fuselage(){
   difference(){
     union(){ fuse_solid(); wing_knuckle(1); wing_knuckle(-1); }
@@ -60,6 +73,9 @@ module fuselage(){
     translate([0,0,-2]) cylinder(h=32,d=cam_d);                                                                  // camera bore — FORWARD out the nose tip
     translate([-(BW/2-4),BH/2-wall-1,nose_len+20]) cube([BW-8,8,body_len-40]);                                   // top hatch
     translate([0,0,total-24]) cylinder(h=30,d=motor_d);                                                          // motor bore
+    naca_inlet(); mirror([1,0,0]) naca_inlet();                                                                  // COOLING: flush ram-air inlets (survive the tube)
+    exhaust_louvers();                                                                                           // COOLING: bay exhaust at the ESC
+    motor_cool_slots();                                                                                          // COOLING: motor breather
   }
 }
 
