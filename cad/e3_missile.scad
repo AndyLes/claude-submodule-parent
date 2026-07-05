@@ -22,9 +22,14 @@ tube_id=120;                // >= folded envelope (constant chord 65 + fins)
 module rrect(w,h,r){ hull() for(sx=[-1,1],sy=[-1,1]) translate([sx*(w/2-r),sy*(h/2-r)]) circle(r=r,$fn=24); }
 
 /* ---- fuselage ---- */
+// ogive skin (inset=0) or inner cavity (inset=wall). Tapers WITH the nose so the
+// shell stays uniform thickness -> the tip never gets severed by a full-width cavity.
+module ogive_hull(inset){
+  hull() for(i=[0:6]) let(z=i/6*nose_len, s=sqrt(max(0.05,1-pow((nose_len-z)/nose_len,2))))
+    translate([0,0,z]) linear_extrude(0.6) rrect(max(3,BW*s-2*inset),max(3,BH*s-2*inset),max(1,corner_r*s-inset));
+}
 module fuse_solid(){
-  hull() for(i=[0:5]) let(z=i/5*nose_len, s=sqrt(max(0.05,1-pow((nose_len-z)/nose_len,2))))
-    translate([0,0,z]) linear_extrude(0.6) rrect(max(3,BW*s),max(3,BH*s),max(1.5,corner_r*s));
+  ogive_hull(0);
   translate([0,0,nose_len]) linear_extrude(body_len) rrect(BW,BH,corner_r);
   hull(){ translate([0,0,nose_len+body_len]) linear_extrude(0.6) rrect(BW,BH,corner_r);
           translate([0,0,total]) linear_extrude(0.6) rrect(motor_d+8,motor_d+8,8); }
@@ -50,7 +55,8 @@ module wing_knuckle(sx){                        // place fork on fuselage side, 
 module fuselage(){
   difference(){
     union(){ fuse_solid(); wing_knuckle(1); wing_knuckle(-1); }
-    translate([0,0,25]) linear_extrude(nose_len+body_len-25) rrect(BW-2*wall,BH-2*wall,corner_r-1);              // bay (hollow from z=25 for the nose camera)
+    ogive_hull(wall);                                                                                           // nose cavity — CONFORMAL shell (tip stays attached; camera board sits at ogive base)
+    translate([0,0,nose_len]) linear_extrude(body_len-wall) rrect(BW-2*wall,BH-2*wall,corner_r-1);              // body cavity (rear bulkhead before tail)
     translate([0,0,-2]) cylinder(h=32,d=cam_d);                                                                  // camera bore — FORWARD out the nose tip
     translate([-(BW/2-4),BH/2-wall-1,nose_len+20]) cube([BW-8,8,body_len-40]);                                   // top hatch
     translate([0,0,total-24]) cylinder(h=30,d=motor_d);                                                          // motor bore
@@ -127,12 +133,38 @@ module folded(){
   translate([-wing_rc/2-8, 0, wing_z-stagger/2]) mirror([0,1,0]) wing_local();  // spans aft, thickness down (nests)
 }
 
+/* ---- SECTION SPLIT for printing: 540mm > any bed -> 3x 180mm sections, glued via
+   INTEGRAL spigots (no extra parts). Fwd section's aft face grows a ring that inserts
+   into the next section's open cavity; smear cyano, slide, done. ---- */
+sec1=180; sec2=360; spig_len=18; spig_gap=0.35; spig_w=2.2;
+module spigot(zc){                       // ring extruded AFT from cut plane, OD < cavity ID
+  translate([0,0,zc]) linear_extrude(spig_len)
+    difference(){ rrect(BW-2*wall-2*spig_gap, BH-2*wall-2*spig_gap, max(1,corner_r-1));
+                  rrect(BW-2*wall-2*spig_gap-2*spig_w, BH-2*wall-2*spig_gap-2*spig_w, max(0.5,corner_r-1-spig_w)); }
+}
+module section(z0,z1){ intersection(){ fuselage(); translate([-100,-100,z0]) cube([200,200,z1-z0]); } }
+
+/* ---- slide-out equipment tray (enters via top hatch): plate + rails + battery-strap slots ---- */
+module equipment_tray(){
+  tw=BW-2*wall-3; tl=body_len-70; th=2;
+  difference(){
+    union(){ cube([tw,tl,th]); for(sx=[0,tw-3]) translate([sx,0,0]) cube([3,tl,6]); }   // base + side rails
+    for(zc=[40,tl-60]) translate([tw/2-9,zc,-0.1]) cube([18,3,th+0.2]);                  // strap slots
+  }
+}
+/* ---- control surface (elevator/rudder): flat hinged trapezoid, print 2-3 ---- */
+module control_surface(){ linear_extrude(3) polygon([[0,0],[38,0],[28,tail_hspan],[0,tail_hspan]]); }
+
 part="assembly";
 if(part=="assembly") assembly();
 else if(part=="folded") folded();
 else if(part=="layout") layout();
 else if(part=="wing") wing_solid();
-else if(part=="tail") { intersection(){ fuselage(); translate([-100,-100,nose_len+body_len]) cube([200,200,tail_len]); } tailfins(); motor_mount(); }
+else if(part=="nose") { section(0,sec1); spigot(sec1); }
+else if(part=="body") { section(sec1,sec2); spigot(sec2); }
+else if(part=="tail") { section(sec2,total); tailfins(); motor_mount(); }
+else if(part=="tray") equipment_tray();
+else if(part=="control_surface") control_surface();
 else if(part=="components") components();
 else if(part=="pin") cylinder(h=20,d=pin_d-0.15,$fn=20);
 else if(part=="latch") deploy_latch();
