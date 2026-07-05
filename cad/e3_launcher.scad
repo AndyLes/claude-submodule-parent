@@ -6,7 +6,7 @@
 // Units: mm.
 
 /* ---- params ---- */
-tube_id   = 115;      // square tube inner (fits fuselage 46x40 + folded wings/tail)
+tube_id   = 120;      // square tube inner (fits fuselage 46x40 + folded wings/tail)
 tube_wall = 4;       // off-the-shelf tube wall
 seal_w    = 4;       // O-ring / foam seal land
 $fn       = 48;

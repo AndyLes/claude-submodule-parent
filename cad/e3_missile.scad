@@ -6,18 +6,18 @@
 /* fuselage — sized by battery (6S3500 43x38): internal >=45x40 -> external 52x46 */
 BW=52; BH=46; corner_r=9; wall=2.4;
 nose_len=120; body_len=300; tail_len=120; total=nose_len+body_len+tail_len;
-motor_d=30; cam_d=10; $fn=48;
+motor_d=30; cam_d=8; $fn=48;
 spar_d=8.2; pin_d=4.2;
 
-/* wing — compact, real NACA ~10% airfoil, folding */
-wing_ss=373; wing_rc=72; wing_tc=48; wing_tpc=0.10;
-wing_z=240;                 // wing station (config x=30 -> z=270-30=240)
+/* wing — CONSTANT chord (rectangular) NACA 15% -> spar fits whole span; folding */
+wing_ss=345; wing_rc=65; wing_tc=65; wing_tpc=0.15;
+wing_z=240;                 // wing station
 stagger=42;                 // L/R roots offset in Z so they DON'T collide when folded
 
-/* small tail (fits tube) + guide */
-tail_root=60; tail_tip=40; tail_th=5; tail_hspan=30; tail_vspan=30;
+/* tail — enlarged (short big-chord, fits tube) for adequate pitch volume */
+tail_root=90; tail_tip=65; tail_th=5; tail_hspan=31; tail_vspan=31;
 fin_z=nose_len+body_len+tail_len*0.5;
-tube_id=115;                // >= folded envelope 112
+tube_id=120;                // >= folded envelope (constant chord 65 + fins)
 
 module rrect(w,h,r){ hull() for(sx=[-1,1],sy=[-1,1]) translate([sx*(w/2-r),sy*(h/2-r)]) circle(r=r,$fn=24); }
 
@@ -50,8 +50,8 @@ module wing_knuckle(sx){                        // place fork on fuselage side, 
 module fuselage(){
   difference(){
     union(){ fuse_solid(); wing_knuckle(1); wing_knuckle(-1); }
-    translate([0,0,nose_len*0.5]) linear_extrude(body_len+nose_len*0.5+1) rrect(BW-2*wall,BH-2*wall,corner_r-1); // bay
-    translate([0,0,nose_len-8]) cylinder(h=40,d=cam_d);                                                          // camera bore
+    translate([0,0,25]) linear_extrude(nose_len+body_len-25) rrect(BW-2*wall,BH-2*wall,corner_r-1);              // bay (hollow from z=25 for the nose camera)
+    translate([0,0,-2]) cylinder(h=32,d=cam_d);                                                                  // camera bore — FORWARD out the nose tip
     translate([-(BW/2-4),BH/2-wall-1,nose_len+20]) cube([BW-8,8,body_len-40]);                                   // top hatch
     translate([0,0,total-24]) cylinder(h=30,d=motor_d);                                                          // motor bore
   }
@@ -64,12 +64,11 @@ module airfoil(chord,t){
   polygon(concat([for(i=[0:n]) let(x=i/n)[x*chord, yt(x,t)*chord]],
                  [for(i=[n:-1:0]) let(x=i/n)[x*chord,-yt(x,t)*chord]]));
 }
-wing_tpc14=0.14;                                 // 14% so the Ø8 spar fits (10% would split the wing)
 module wing_local(){                             // span +Z, chord +X, thick Y ; root TONGUE at Z<0
   spar_x = 15 + wing_rc*0.3;                      // spar at 30% chord (offset by tongue lead-in 15)
   difference(){
     union(){
-      translate([15,0,0]) linear_extrude(height=wing_ss, scale=wing_tc/wing_rc) airfoil(wing_rc, wing_tpc14);
+      translate([15,0,0]) linear_extrude(height=wing_ss, scale=1) airfoil(wing_rc, wing_tpc);  // CONSTANT chord -> spar fits whole span
       translate([0,-tongue_t/2,-12]) cube([spar_x+8, tongue_t, 26]);   // SOLID tongue (mates fork; merged w/ airfoil root)
     }
     translate([7,-tongue_t/2-1,0]) rotate([-90,0,0]) cylinder(h=tongue_t+2,d=pin_d,$fn=20);  // pin bore Y (mates fork)
@@ -120,9 +119,17 @@ module components(){
 
 module assembly(){ fuselage(); wing_R(); wing_L(); tailfins(); motor_mount(); }
 module layout(){ difference(){ fuselage(); translate([0,0,-1]) cube([100,100,total+2]); } components(); wing_R(); wing_L(); tailfins(); }
+// FOLDED (stowed for the tube): wings sweep back about the vertical pin to span AFT (+Z),
+// chord transverse (=65), lying over the fuselage; staggered + one flipped so they nest.
+module folded(){
+  fuselage(); tailfins(); motor_mount();
+  translate([-wing_rc/2-8, 0, wing_z+stagger/2]) wing_local();                  // spans aft, thickness up
+  translate([-wing_rc/2-8, 0, wing_z-stagger/2]) mirror([0,1,0]) wing_local();  // spans aft, thickness down (nests)
+}
 
 part="assembly";
 if(part=="assembly") assembly();
+else if(part=="folded") folded();
 else if(part=="layout") layout();
 else if(part=="wing") wing_solid();
 else if(part=="tail") { intersection(){ fuselage(); translate([-100,-100,nose_len+body_len]) cube([200,200,tail_len]); } tailfins(); motor_mount(); }
