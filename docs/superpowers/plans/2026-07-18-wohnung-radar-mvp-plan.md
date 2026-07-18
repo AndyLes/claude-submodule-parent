@@ -908,8 +908,11 @@ async def run() -> None:
     root = Path(__file__).resolve().parents[2]
     conn = dbm.connect(str(root / "radar.db"))
     criteria = load_criteria(root / "config" / "criteria.yaml")
-    token = os.environ["TELEGRAM_BOT_TOKEN"]
-    notifier = TelegramNotifier(token, os.environ["TELEGRAM_CHAT_ID"],
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    if not token or not chat_id:
+        raise SystemExit("Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in .env (see .env.example)")
+    notifier = TelegramNotifier(token, chat_id,
                                 dry_run=os.getenv("DRY_RUN", "0") == "1")
     pipeline = Pipeline(conn, criteria, notifier)
     sources = [KleinanzeigenSource()]
@@ -929,10 +932,19 @@ async def run() -> None:
         await app.updater.start_polling()
         for source in sources:
             await pipeline.run_source(source)  # immediate first cycle
-        await asyncio.Event().wait()
+        try:
+            await asyncio.Event().wait()
+        finally:
+            # PTB __aexit__ raises if app is still running — stop cleanly first
+            await app.updater.stop()
+            await app.stop()
+            scheduler.shutdown(wait=False)
 
 def main() -> None:
-    asyncio.run(run())
+    try:
+        asyncio.run(run())
+    except KeyboardInterrupt:
+        pass
 
 if __name__ == "__main__":
     main()
