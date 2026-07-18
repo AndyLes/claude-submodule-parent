@@ -590,16 +590,18 @@ def _num(text: str | None) -> float | None:
 
 def _district(location: str) -> str | None:
     # "04229 Leipzig - Schleußig" -> "Schleußig"; "04277 Leipzig" -> None
-    if "-" in location:
-        return location.rsplit("-", 1)[-1].strip() or None
+    # split on " - " so hyphenated districts (Zentrum-Süd) stay intact
+    if " - " in location:
+        return location.split(" - ", 1)[1].strip() or None
     return None
 
 def parse_search_page(html: str) -> list[Listing]:
     soup = BeautifulSoup(html, "html.parser")
     out: list[Listing] = []
     for ad in soup.select("article.aditem[data-adid]"):
+        # per-ad fault isolation: one malformed promoted-slot ad must not kill the page
         link = ad.select_one("a.ellipsis")
-        if link is None:
+        if link is None or link.get("href") is None:
             continue
         loc = ad.select_one(".aditem-main--top--left")
         price = ad.select_one(".aditem-main--middle--price-shipping--price")
