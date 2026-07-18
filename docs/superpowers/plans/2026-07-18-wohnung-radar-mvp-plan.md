@@ -476,7 +476,7 @@ def test_different_rent_not_duplicate(tmp_path):
 `src/radar/dedup.py`:
 
 ```python
-from rapidfuzz import fuzz
+from rapidfuzz import fuzz, utils
 from .models import Listing
 
 def is_cross_source_duplicate(listing: Listing, rows) -> bool:
@@ -484,14 +484,14 @@ def is_cross_source_duplicate(listing: Listing, rows) -> bool:
     for row in rows:
         if row["source"] == listing.source:
             continue
-        if (listing.rent_warm and row["rent_warm"]
+        if (listing.rent_warm is not None and row["rent_warm"] is not None
                 and abs(listing.rent_warm - row["rent_warm"]) > 20):
             continue
-        if (listing.area_m2 and row["area_m2"]
+        if (listing.area_m2 is not None and row["area_m2"] is not None
                 and abs(listing.area_m2 - row["area_m2"]) > 2):
             continue
-        if fuzz.token_set_ratio(listing.title.lower(),
-                                (row["title"] or "").lower()) >= 90:
+        if fuzz.token_set_ratio(listing.title, row["title"] or "",
+                                processor=utils.default_process) >= 90:
             return True
     return False
 ```
