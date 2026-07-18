@@ -835,18 +835,31 @@ class Pipeline:
             return
         existing = dbm.recent_listings(self.conn)
         for listing in listings:
-            row_id = dbm.insert_if_new(self.conn, listing)
-            if row_id is None:
+            # per-listing isolation: one bad listing or a Telegram outage must not
+            # drop the rest of the batch; notify failures stay visible via status
+            try:
+                row_id = dbm.insert_if_new(self.conn, listing)
+                if row_id is None:
+                    continue
+                result = evaluate(listing, self.criteria)
+                if not result.passed:
+                    dbm.set_status(self.conn, row_id, "filtered_out")
+                    continue
+                if is_cross_source_duplicate(listing, existing):
+                    dbm.set_status(self.conn, row_id, "duplicate")
+                    continue
+                try:
+                    await self.notifier.notify(row_id, listing, result)
+                except Exception:
+                    log.warning("notify failed for %s:%s", listing.source,
+                                listing.source_id, exc_info=True)
+                    dbm.set_status(self.conn, row_id, "notify_failed")
+                    continue
+                dbm.set_status(self.conn, row_id, "notified")
+            except Exception:
+                log.warning("listing processing failed for %s:%s", listing.source,
+                            getattr(listing, "source_id", "?"), exc_info=True)
                 continue
-            result = evaluate(listing, self.criteria)
-            if not result.passed:
-                dbm.set_status(self.conn, row_id, "filtered_out")
-                continue
-            if is_cross_source_duplicate(listing, existing):
-                dbm.set_status(self.conn, row_id, "duplicate")
-                continue
-            await self.notifier.notify(row_id, listing, result)
-            dbm.set_status(self.conn, row_id, "notified")
 ```
 
 - [ ] **Step 4: Run** → PASS. **Step 5: Commit** `git add -A; git commit -m "feat: pipeline with isolated source failures + alerts"`
@@ -950,7 +963,7 @@ Expected: log of first cycle; `[DRY-RUN notify]` cards printed for any matching 
 - [ ] **Step 3: Write docs**
 
 `docs/ARCHITECTURE.md` — the pipeline diagram (source → normalize → insert_if_new → filter → dedup → notify), component list, file map from this plan's header.
-`docs/DECISIONS.md` — record: KA price = Kaltmiete → unknown rent_warm flagged not dropped; district whitelist as geo stage 1 (Routes API in Plan 2); dry-run mode; alert_after=3.
+`docs/DECISIONS.md` — record: KA price = Kaltmiete → unknown rent_warm flagged not dropped; district whitelist as geo stage 1 (Routes API in Plan 2); dry-run mode; alert_after=3; no alert on notify failures (Telegram down → alert undeliverable too; visibility via notify_failed status); Plan-2 landmines: dedup snapshot is taken once per run_source (concurrent multi-source cycles could miss same-window cross-source dups) and recent_listings limit=200 bounds the dedup window.
 `README.md` — setup (venv, .env, BotFather), run command, Windows autostart via Task Scheduler: `schtasks /create /tn WohnungRadar /tr "C:\SuperWork\projects\wohnung-radar\.venv\Scripts\pythonw.exe -m radar.main" /sc onstart` (note: run from repo dir).
 
 - [ ] **Step 4: Commit** `git add -A; git commit -m "docs: architecture, decisions, setup"`
