@@ -47,7 +47,7 @@ def test_profile_loads():
     assert p.full_name
     assert p.household
     assert p.employment
-    assert "{landlord_line}" not in p.letter_template  # template has placeholders but is well-formed
+    assert "{landlord_line}" in p.letter_template  # template keeps its placeholders at rest
     assert "{intro}" in p.letter_template and "{household}" in p.letter_template
 ```
 
