@@ -10,11 +10,14 @@
 
 **Repo/spec:** `C:\SuperWork\projects\wohnung-radar\` (own git repo). Spec: `docs/superpowers/specs/2026-07-23-wohnung-radar-cloud-migration-design.md` (in the parent `C:\SuperWork` repo).
 
-**Testing DB:** Tasks that touch Postgres run against a **local Postgres** the implementer starts via Docker:
-```powershell
-docker run -d --name radar-pg -e POSTGRES_PASSWORD=radar -e POSTGRES_DB=radar_test -p 55432:5432 postgres:16
-```
-Test DSN: `postgresql://postgres:radar@localhost:55432/radar_test`. Tests read `TEST_DATABASE_URL` env (default that DSN). If Docker is unavailable, report BLOCKED — do NOT fall back to the user's real Supabase for tests.
+**Testing DB (Docker unavailable on this machine → use Supabase with an isolated schema):** Postgres-touching tests run against the **real Supabase project** but in a dedicated `radar_test` schema, kept fully separate from the future production `public` schema. The full connection string (with password) lives ONLY in the local gitignored `C:\SuperWork\projects\wohnung-radar\.env` as `DATABASE_URL=...` — never in code, tests, or chat. Tests read it from the environment (loaded via `python-dotenv`, already a dep).
+
+The `conftest.py` `pg_conn` fixture must isolate into `radar_test`:
+1. Raw-connect to `DATABASE_URL`, `CREATE SCHEMA IF NOT EXISTS radar_test`, commit, close.
+2. Build the test DSN by appending the search-path option so `db.connect()`'s `CREATE TABLE` lands in `radar_test`: pass `options="-c search_path=radar_test"` to `psycopg.connect` (do this inside a small `connect_test()` helper in conftest that calls `psycopg.connect(DATABASE_URL, row_factory=dict_row, options="-c search_path=radar_test")` then runs `db.SCHEMA`). Do NOT use `db.connect(DATABASE_URL)` directly for tests (that would create tables in `public`).
+3. Teardown: `DROP SCHEMA radar_test CASCADE`.
+
+The Supabase string is the **session pooler** (port 5432) which keeps `search_path` for the connection lifetime — correct for this. Tests are slower than local (network round-trips to eu-west-1) but correct. If `DATABASE_URL` is unset in `.env`, report BLOCKED and ask the user to add it — do NOT touch the `public` schema.
 
 **File map:**
 
