@@ -2297,30 +2297,36 @@ export function buildRoutine(input: RoutineInput): Routine {
   // 9-10. Fill the remaining budget from the ranked categories, shortening a
   // module before dropping it.
   const placed = new Set<ModuleId>();
-  const ranked_modules = ranked.flatMap((r) => modulesForCategory(r.category).slice(0, 1));
+  const rankedModules = ranked.flatMap((r) => modulesForCategory(r.category).slice(0, 1));
 
   // No symptom cleared the threshold: fall back to the breathing module rather
   // than shipping a morning of nothing but anchors.
-  const fallback = ranked_modules.length === 0
+  const fallback = rankedModules.length === 0
     ? [moduleById('breath')].filter((m): m is CatalogModule => m !== undefined)
     : [];
 
-  // Concept step 9: a closing element from budget 10 upward. Tagesanker is the
-  // closer; without this rule it would only appear when Mindset happens to rank
-  // high enough to win a slot.
-  const closing = budget >= 10
-    ? [moduleById('tagesanker')].filter((m): m is CatalogModule => m !== undefined)
-    : [];
+  // Concept step 9: a closing element from budget 10 upward.
+  //
+  // Its minute is RESERVED before the practice modules compete, not appended
+  // afterwards. At budget 10 the movement block takes half and the anchors take
+  // three minutes, so a closer added last would never fit — the rule would hold
+  // only when the budget happened to be generous.
+  const closer = budget >= 10 && !excluded.has('tagesanker')
+    ? moduleById('tagesanker')
+    : undefined;
+  const closerMin = closer ? minutesOf(closer, 'gentle') : 0;
+  remaining -= closerMin;
 
   const candidates: CatalogModule[] = [
-    ...ranked_modules,
+    ...rankedModules,
     ...fallback,
-    ...closing,
     ...overrides.added.map(moduleById).filter((m): m is CatalogModule => m !== undefined),
   ];
 
   for (const module of candidates) {
     if (placed.has(module.id) || excluded.has(module.id)) continue;
+    // The closer is already reserved; it must not also win a practice slot.
+    if (closer && module.id === closer.id) continue;
 
     const start = TIER_ORDER.indexOf(intendedTier(module, profile, capped));
     for (let i = Math.max(0, start); i < TIER_ORDER.length; i++) {
@@ -2335,6 +2341,12 @@ export function buildRoutine(input: RoutineInput): Routine {
         break;
       }
     }
+  }
+
+  if (closer) {
+    steps.push(toStep(closer, 'gentle'));
+    totalMin += closerMin;
+    placed.add(closer.id);
   }
 
   for (const exercise of exercises) {
