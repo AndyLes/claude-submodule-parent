@@ -1379,8 +1379,9 @@ describe('filterByRestrictions', () => {
   });
 
   it('removes every exercise matching any listed restriction', () => {
+    // catcow survives: it is contraindicated for knees, not for back.
     const kept = filterByRestrictions(gentle, ['back', 'balance']);
-    expect(kept.map((e) => e.id)).toEqual(['sidebend']);
+    expect(kept.map((e) => e.id)).toEqual(['catcow', 'sidebend']);
   });
 
   it('can return an empty list rather than an unsafe one', () => {
