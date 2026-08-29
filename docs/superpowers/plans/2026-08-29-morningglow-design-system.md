@@ -72,18 +72,24 @@ The repo already holds `src/core`, `src/data`, `tests/` and a vitest setup. Expo
 
 - [ ] **Step 1: Install Expo and the UI dependencies**
 
-```bash
-cd C:\SuperWork\projects\morningglow
-npx install-expo-modules@latest --non-interactive || true
-npm install expo@~54.0.0 react@19.1.0 react-native@0.81.4 expo-router@~6.0.0 \
-  react-native-safe-area-context react-native-screens react-native-svg \
-  expo-linear-gradient expo-blur expo-font expo-splash-screen expo-status-bar \
-  react-native-reanimated react-native-gesture-handler \
-  @expo-google-fonts/plus-jakarta-sans
-npm install -D @types/react
+Do **not** pin versions by hand. `npx expo install` resolves what the SDK
+actually ships; pinning gave reanimated 4.6, which demands RN 0.83+, while SDK
+54 is on 0.81 — an unsolvable peer conflict produced by a guess.
+
+`app.json` (Step 2) must exist before `expo install` runs, or its plugin step
+throws. Write it first, then come back here.
+
+```
+npm install expo@~54.0.0
+npx expo install react react-dom react-native expo-router react-native-safe-area-context react-native-screens react-native-svg expo-linear-gradient expo-blur expo-font expo-splash-screen expo-status-bar react-native-reanimated react-native-gesture-handler
+npx expo install @expo-google-fonts/plus-jakarta-sans
+npx expo install --dev @types/react
+npm install -D babel-preset-expo
 ```
 
-If `install-expo-modules` reports there is no native project, that is expected — this is a managed app and there is no `ios/` or `android/` directory.
+`babel-preset-expo` is installed explicitly. It arrives transitively, but Babel
+resolves presets from the project's own `package.json` and otherwise fails with
+"Cannot find module 'babel-preset-expo'".
 
 - [ ] **Step 2: Write `app.json`**
 
@@ -143,9 +149,12 @@ import 'expo-router/entry';
 
 - [ ] **Step 6: Point `package.json` at Expo without breaking vitest**
 
+Etappe 1 set `"type": "module"`. It has to go: `babel.config.js` and
+`metro.config.js` are CommonJS and fail to load under it.
+
 ```json
 {
-  "main": "index.ts",
+  "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
