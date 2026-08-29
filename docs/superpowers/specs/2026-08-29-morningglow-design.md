@@ -66,11 +66,16 @@ react-native-svg · expo-linear-gradient · expo-blur · expo-video
 ```
 src/core/          reines TypeScript, kein React- und kein Supabase-Import
   symptoms.ts        12 Symptome, Skala 0-4, Trennung in-scope / out-of-scope
-  goals.ts           6 Wirkziele + Mapping Symptom -> Ziel
+  categories.ts      5 Konzept-Kategorien + Gewichtungsmatrix
+  goals.ts           6 Wirkziele (Beschriftung und Farbe der Oberfläche)
   evidence.ts        6 Evidenzstufen + Sprachregelung
   catalog.ts         Modulkatalog (Varianten gentle/standard/extended)
+  scoring.ts         Basis-Scores aus Symptom x Intensitaet
   phase.ts           Phasen-Modifikator der Gewichtungen
-  rotation.ts        wöchentliche Übungsrotation
+  preferences.ts     Vorlieben-Booster x1,5 (F1)
+  checkin.ts         Energie-Modifikator aus dem Tages-Check-in
+  restrictions.ts    Filter des Uebungskatalogs nach koerperlichen Einschraenkungen
+  rotation.ts        woechentliche Uebungsrotation
   buildRoutine.ts    budgetbewusste Zusammenstellung
   profile.ts         Typen + zod-Schema + finalize
   __tests__/
@@ -89,7 +94,61 @@ Repositories zu, nicht direkt auf den Client.
 
 ### Personalisierungs-Engine
 
-Reihenfolge der Berechnung (Konzept, Abschnitt 2.8):
+#### Zwei Taxonomien, eine Auswahl
+
+Konzept und Prototyp verwenden unterschiedliche Einteilungen. Das Konzept rechnet mit
+fünf **Kategorien** (Nervensystem, Bewegung, Ernährung, Mindset, Wissen), der Prototyp
+ordnet Module sechs **Wirkzielen** zu (calm, mood, clarity, energize, body, reflect).
+
+Aufgelöst wird das so: gerechnet wird auf **Kategorien** — das ist die Ebene, für die
+das Konzept Gewichte und Modifikatoren definiert. Jedes Modul bekommt zusätzlich zu
+seinem Wirkziel eine Kategorie. Das Wirkziel bleibt erhalten, weil die Oberfläche
+Farben und Beschriftungen daraus zieht.
+
+| Kategorie | Module |
+|---|---|
+| Nervensystem | `breath`, `meditate` |
+| Bewegung | `movement`, `stretch` |
+| Mindset | `tagesanker`, `gratitude`, `affirm` |
+| Ernährung | keine — die Kategorie existiert im Konzept, im Modulkatalog nicht (v2) |
+| Wissen | keine — kein Routineschritt |
+
+`water` und `light` sind Anker und stehen außerhalb der Kategoriewertung.
+
+**Ernährung und Wissen erhalten in v1 Punkte, die in der Routine nirgends landen.**
+Der Wissen-Score wird an den Bereich „Entdecken" durchgereicht und steuert dort die
+Reihenfolge der Beiträge. Der Ernährung-Score wird berechnet und protokolliert, bis
+die Kategorie in v2 Module bekommt.
+
+#### Gewichtungsmatrix
+
+Aus dem Konzept, Abschnitt 2.2. Die Zuordnung der Zeilen ist über das dort mitgelieferte
+Rechenbeispiel verifiziert (Schlafstörungen 4/5 + Erschöpfung 3/5 → Nervensystem 18,
+Bewegung 13, Mindset 11).
+
+| Symptom-ID | Konzept-Zeile | Nervensystem | Bewegung | Ernährung | Mindset | Wissen |
+|---|---|---|---|---|---|---|
+| `sleep` | Schlafstörungen | 3 | 1 | 1 | 2 | 2 |
+| `hotFlashes` | Hitzewallungen | 2 | 1 | 2 | 1 | 3 |
+| `fatigue` | Erschöpfung + Brain Fog | 2 | 3 | 2 | 2 | 1 |
+| `depressed` | Stimmungsschwankungen | 2 | 2 | 1 | 3 | 1 |
+| `irritable` | Stimmungsschwankungen | 2 | 2 | 1 | 3 | 1 |
+| `anxious` | Innere Unruhe | 3 | 2 | 1 | 2 | 1 |
+| `joints` | Gelenkschmerzen | 1 | 3 | 1 | 1 | 2 |
+| `weight` | Gewichtszunahme | 1 | 3 | 3 | 1 | 2 |
+
+Zwei Abweichungen, beide bewusst:
+
+- Der Prototyp führt `fatigue` als „Erschöpfung & Konzentration" und fasst damit zwei
+  Konzeptzeilen zusammen. Übernommen wird pro Spalte das **Maximum** aus Erschöpfung
+  (2/3/2/1/1) und Brain Fog (1/3/2/2/1).
+- Das Konzept kennt „Stimmungsschwankungen" als eine Zeile, der Prototyp trennt
+  `depressed` und `irritable`. Beide erben dieselbe Zeile.
+
+Die Konzeptzeilen „Trockene Haut" und „Herzrasen" entfallen: beide gehören zu den
+Out-of-Scope-Symptomen und werden nie zu einem Routineschritt.
+
+#### Reihenfolge der Berechnung (Konzept, Abschnitt 2.8):
 
 1. Basis-Scores der Kategorien aus dem Onboarding — Symptom × Intensität laut Gewichtungsmatrix
 2. Phasen-Modifikator
@@ -135,7 +194,7 @@ sich löschen lassen, ohne das andere zu berühren.
 | Tabelle | Inhalt |
 |---|---|
 | `profiles` | `id` = auth.uid, Locale, Name, Zeitpunkt des Onboarding-Abschlusses |
-| `health_profile` | Phase · HRT-Status · Aktivitätslevel · Aufwachfenster · Zeitbudget · Themen · **körperliche Einschränkungen** · Motivation · Routine-Erfahrung · Tagesstruktur · Schlafmuster |
+| `health_profile` | Phase · HRT-Status · Aktivitätslevel · Aufwachfenster · Zeitbudget · **Ritual-Vorlieben (F1)** · **körperliche Einschränkungen** · Motivation · Routine-Erfahrung · Tagesstruktur · Schlafmuster |
 | `symptom_assessments` | Verlauf der Einschätzungen (jsonb + Datum) — Grundlage der Verlaufskurve |
 | `daily_checkins` | Stimmung, Energie, Hitzewallungen, Schlafqualität — einer pro Tag |
 | `ritual_completions` | absolvierte Schritte, Dauer, Abschlusszeitpunkt |
@@ -194,11 +253,36 @@ Nervensystem +20 %; Perimenopause „mittendrin" → Nervensystem +30 %, Mindset
 Menopause → Wissen +20 %; Postmenopause → Bewegung +30 %, Nervensystem −10 %;
 „unsicher" → Wissen +30 %.
 
-### Themen sind keine toten Daten mehr
+### Schritt 4 wird ersetzt, nicht angebunden
 
 `profile.topics` wird in Schritt 4 des Onboardings geschrieben und danach nirgends
-gelesen — `buildRoutine` sieht die Angabe nicht. Sie wird als Booster ×1,5 auf die
-zugehörigen Kategorien angebunden.
+gelesen — `buildRoutine` sieht die Angabe nicht.
+
+Die Prüfung des Prototyps zeigt allerdings, dass ein Booster auf `topics` fachlich
+falsch wäre. `ScreenSymptoms` fragt zwölf **Symptome** als Chips ab — dieselbe
+Information, die Schritt 3 unmittelbar davor bereits mit Intensität erhoben hat, nur
+gröber und unter abweichenden Bezeichnungen. Ein Multiplikator darauf würde Symptome
+doppelt zählen.
+
+Der Vorlieben-Booster des Konzepts (F1) meint etwas anderes: **Ritual-Vorlieben**.
+Diese Frage stellt der Prototyp überhaupt nicht.
+
+Schritt 4 wird deshalb inhaltlich ersetzt. Gefragt werden bis zu 3 Vorlieben, die als
+Booster ×1,5 auf die zugehörige Kategorie wirken:
+
+| Vorliebe | Kategorie |
+|---|---|
+| Atemübungen & Entspannung | Nervensystem |
+| Meditation & Achtsamkeit | Nervensystem |
+| Sanfte Bewegung & Stretching | Bewegung |
+| Journaling & Reflexion | Mindset |
+| Dankbarkeit & positive Gedanken | Mindset |
+| Wissensinputs über Hormone & Gesundheit | Wissen |
+| Gesunde Ernährung & Frühstücksideen | Ernährung |
+| Ich bin offen für alles | kein Booster, maximale Varianz |
+
+Die Anzahl der Schritte bleibt gleich; Schritt 4 trägt erstmals Information, die die
+Routine tatsächlich verändert.
 
 ### Übungsrotation
 
@@ -217,11 +301,25 @@ Das Konzept fordert „maximal 7–8 Screens, rund 2 Minuten". Der Prototyp hat 
 **12 Slidern hintereinander**. In zwei Minuten ist das nicht zu schaffen, und genau
 hier ist der größte Abbruch zu erwarten.
 
-Die Schritte 3 und 4 werden getauscht: zuerst die Symptom-Chips (bis zu 5), danach die
-Intensität **nur für die ausgewählten**. Statt immer 12 Slidern sind es höchstens 5.
+Schritt 3 wird zweistufig: zuerst die Auswahl der Symptome als Chips (bis zu 5), danach
+die Intensität **nur für die ausgewählten**. Statt immer 12 Slidern sind es höchstens 5.
 
 Das entspricht der Variante C2 des Konzepts selbst („Anzeige nur für die am stärksten
-ausgewählten").
+ausgewählten"). Die Chip-Liste speist sich aus `MRS_ITEMS` — nicht aus der abweichenden
+Beschriftungsliste des bisherigen Schritts 4, die dabei entfällt.
+
+Ob beide Stufen auf einem Screen liegen oder auf zweien, entscheidet Etappe 4; das
+Datenmodell ist in beiden Fällen dasselbe.
+
+### Nicht erhobene Phase
+
+Das Konzept unterscheidet fünf Phasen und vergibt der frühen Perimenopause einen
+eigenen Modifikator (Nervensystem +20 %). Der Prototyp bietet vier Optionen an —
+`peri`, `meno`, `post`, `unsure` — und kennt „frühe Perimenopause" nicht.
+
+v1 behält die vier Optionen des Prototyps. Der Modifikator für die frühe Perimenopause
+bleibt im Code definiert, ist aber nicht erreichbar, solange die Option nicht erhoben
+wird. Das ist dokumentiert, damit es später nicht als Fehler gelesen wird.
 
 ## Abgelehnt — mit Begründung
 
