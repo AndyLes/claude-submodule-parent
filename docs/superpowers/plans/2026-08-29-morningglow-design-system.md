@@ -84,12 +84,19 @@ npm install expo@~54.0.0
 npx expo install react react-dom react-native expo-router react-native-safe-area-context react-native-screens react-native-svg expo-linear-gradient expo-blur expo-font expo-splash-screen expo-status-bar react-native-reanimated react-native-gesture-handler
 npx expo install @expo-google-fonts/plus-jakarta-sans
 npx expo install --dev @types/react
-npm install -D babel-preset-expo
+npx expo install --dev babel-preset-expo
 ```
 
 `babel-preset-expo` is installed explicitly. It arrives transitively, but Babel
 resolves presets from the project's own `package.json` and otherwise fails with
 "Cannot find module 'babel-preset-expo'".
+
+It must go through `expo install`, never `npm install -D`. Plain npm takes the
+latest major (57), which is built for a newer Hermes that already parses
+private class fields and so leaves `#private` untranspiled. SDK 54's Hermes
+cannot read it, and the app dies before it starts with "private properties are
+not supported" — thrown by React Native's own modules, not by ours. The same
+mismatch also breaks `expo export`. Verify with `npx expo install --check`.
 
 - [ ] **Step 2: Write `app.json`**
 
