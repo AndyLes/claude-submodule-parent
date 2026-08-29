@@ -1,303 +1,327 @@
-# MorningGlow — дизайн застосунку
+# MorningGlow — App-Design
 
-- **Дата:** 2026-08-29
-- **Власник:** Andriy
-- **Статус:** дизайн затверджено, план реалізації не написано
-- **Джерела:** handoff-бандл Claude Design `MorningGlow App (Remix)`; концепт-документ
-  `App - Onboarding-Konzept - annotated.pdf` (квітень 2026, з примітками замовника)
+- **Datum:** 2026-08-29
+- **Verantwortlich:** Andriy
+- **Status:** Design freigegeben, Umsetzungsplan noch nicht geschrieben
+- **Quellen:** Claude-Design-Handoff-Bundle `MorningGlow App (Remix)`; Konzeptdokument
+  `App - Onboarding-Konzept - annotated.pdf` (April 2026, mit Anmerkungen der Auftraggeberseite)
 
-## Що це
+## Worum es geht
 
-Мобільний застосунок для жінок у пери-/менопаузі. Ядро продукту — **персоналізована
-ранкова рутина**, зібрана з модулів під конкретний симптомний профіль, часовий бюджет
-і рівень активності.
+Eine mobile App für Frauen in der Peri- und Menopause. Kern des Produkts ist eine
+**personalisierte Morgenroutine**, die aus Modulen zusammengestellt wird — passend zum
+individuellen Symptomprofil, zum Zeitbudget und zum Aktivitätslevel.
 
-Мова інтерфейсу на старті — німецька (ринок DACH). Тон — «sanft statt streng»:
-жодного тиску, все можна пропустити, жодних відсотків і оцінок.
+Oberflächensprache zum Start: Deutsch (Markt DACH). Ton: „sanft statt streng" — kein
+Druck, alles überspringbar, keine Prozentzahlen und keine Bewertungen.
 
-## Вихідний матеріал
+## Ausgangsmaterial
 
-Handoff — це **прототип**, а не продакшн-код: React 18 UMD + Babel standalone у
-`<script>`, ~14 300 рядків JSX у 13 файлах, усі модулі через `Object.assign(window, …)`,
-стан у `localStorage` під ключем `mg.profile.v1`. Бекенду немає.
+Der Handoff ist ein **Prototyp**, kein Produktionscode: React 18 UMD + Babel standalone
+in `<script>`-Tags, rund 14 300 Zeilen JSX in 13 Dateien, sämtliche Module über
+`Object.assign(window, …)`, Zustand ausschließlich im `localStorage` unter dem Schlüssel
+`mg.profile.v1`. Ein Backend existiert nicht.
 
-Відтворюємо **візуальний результат**, а не внутрішню структуру прототипу.
+Nachgebaut wird das **visuelle Ergebnis**, nicht die interne Struktur des Prototyps.
 
-Що з бандла переїжджає як актив: дизайн-токени (`components.jsx`), доменна логіка
-(`engine.jsx`), SVG-шляхи іконок, лого, Plus Jakarta Sans, і медіа вправ.
+Als Assets übernommen werden: Design-Tokens (`components.jsx`), die Domänenlogik
+(`engine.jsx`), die SVG-Pfade der Icons, Logo, Plus Jakarta Sans sowie die Übungsmedien.
 
-**Інвентар медіа (перевірено у бандлі):**
+**Medien-Inventar (im Bundle geprüft):**
 
-| | Є |
+| | Vorhanden |
 |---|---|
-| Відео вправ | 4 — `catcow`, `sidebend`, `fold`, `tree` |
-| Відео якорів | 2 — `glas-water`, `sunlight-window` (вода і ранкове світло, не вправи) |
-| Фото поз | 6 — `breathe`, `catcow`, `fold`, `sidebend`, `tree`, `twist` |
+| Übungsvideos | 4 — `catcow`, `sidebend`, `fold`, `tree` |
+| Anker-Videos | 2 — `glas-water`, `sunlight-window` (Wasser und Morgenlicht, keine Übungen) |
+| Posenfotos | 6 — `breathe`, `catcow`, `fold`, `sidebend`, `tree`, `twist` |
 
-Рівень `gentle` має 5 вправ, відео є для 4: **«Stehende Drehung» (twist) — лише фото.**
-Рівні `moderate` (6 вправ) і `active` (6 вправ) не мають ані відео, ані фото.
+Die Stufe `gentle` umfasst 5 Übungen, Video liegt für 4 davon vor: **„Stehende Drehung"
+(twist) existiert nur als Foto.** Die Stufen `moderate` (6 Übungen) und `active`
+(6 Übungen) haben weder Video noch Foto.
 
-## Рішення щодо обсягу
+## Scope-Entscheidungen
 
-| Питання | Рішення |
+| Frage | Entscheidung |
 |---|---|
-| Ціль | Продакшн-застосунок |
-| Клієнт | React Native + Expo (iOS + Android з одного коду) |
-| Ринок | DACH, лише `de`; i18n закладена в архітектуру з першого дня |
-| Акаунти | Спершу анонімно (Supabase anonymous sign-in), пропозиція завести акаунт на 3-й день |
-| Монетизація | Немає у v1; схема БД готова під тарифи |
-| Спільнота | Немає у v1 (модерація, скарги, Apple 1.2 — окрема підсистема) |
-| Контент | Чернетки статей пише Claude з офіційних джерел, **обовʼязкова** візація лікаркою; відео — за замовником |
-| База даних | Схема покриває **повну** модель концепту одразу; UI під поля виходить поступово |
+| Ziel | Produktionsreife App |
+| Client | React Native + Expo (iOS und Android aus einer Codebasis) |
+| Markt | DACH, nur `de`; i18n von Tag eins in der Architektur verankert |
+| Konten | Zunächst anonym (Supabase Anonymous Sign-in), Kontoangebot am dritten Tag |
+| Monetarisierung | Nicht in v1; das Datenbankschema ist auf Tarife vorbereitet |
+| Community | Nicht in v1 (Moderation, Meldungen, Apple-Richtlinie 1.2 — ein eigenes Teilsystem) |
+| Inhalte | Artikelentwürfe von Claude aus offiziellen Quellen, **verpflichtende** Freigabe durch eine Ärztin; Videos durch die Auftraggeberseite |
+| Datenbank | Das Schema bildet das **vollständige** Konzeptmodell sofort ab; die Oberfläche zu den Feldern folgt schrittweise |
 
-## Архітектура
+## Architektur
 
-### Стек
+### Stack
 
 Expo SDK 54 (RN 0.81) · expo-router · TypeScript strict · Supabase EU
 (Postgres + Auth + RLS + Storage) · i18next · expo-notifications ·
-Zustand + MMKV (локальний стан і офлайн) · react-native-reanimated ·
+Zustand + MMKV (lokaler Zustand und Offline-Betrieb) · react-native-reanimated ·
 react-native-svg · expo-linear-gradient · expo-blur · expo-video
 
-### Межі модулів
+### Modulgrenzen
 
 ```
-src/core/          чистий TypeScript, нуль імпортів React і Supabase
-  symptoms.ts        12 симптомів, шкала 0-4, поділ in/out-of-scope
-  goals.ts           6 wirkziele + мапа симптом -> ціль
-  evidence.ts        6 рівнів доказовості + правило формулювань
-  catalog.ts         каталог модулів (варіанти gentle/standard/extended)
-  phase.ts           фазовий модифікатор ваг
-  rotation.ts        щотижнева ротація вправ
-  buildRoutine.ts    складальник під бюджет
-  profile.ts         типи + zod-схема + finalize
+src/core/          reines TypeScript, kein React- und kein Supabase-Import
+  symptoms.ts        12 Symptome, Skala 0-4, Trennung in-scope / out-of-scope
+  goals.ts           6 Wirkziele + Mapping Symptom -> Ziel
+  evidence.ts        6 Evidenzstufen + Sprachregelung
+  catalog.ts         Modulkatalog (Varianten gentle/standard/extended)
+  phase.ts           Phasen-Modifikator der Gewichtungen
+  rotation.ts        wöchentliche Übungsrotation
+  buildRoutine.ts    budgetbewusste Zusammenstellung
+  profile.ts         Typen + zod-Schema + finalize
   __tests__/
-src/ui/            дизайн-система з токенів MG
+src/ui/            Designsystem aus den MG-Tokens
 src/features/      onboarding · today · ritual · discover · me
-src/data/          Supabase-клієнт, репозиторії, офлайн-черга
-app/               маршрути expo-router
+src/data/          Supabase-Client, Repositories, Offline-Queue
+app/               Routen für expo-router
 ```
 
-**`core` не імпортує ні React, ні Supabase.** Усе, що вирішує *яку рутину показати*,
-живе там і тестується без рендера. Ядро згодом переїде на бекенд для серверних
-пушів без переписування.
+**`core` importiert weder React noch Supabase.** Alles, was entscheidet, *welche
+Routine angezeigt wird*, liegt dort und ist ohne Rendering testbar. Der Kern lässt sich
+später unverändert ins Backend verlagern, um Push-Nachrichten serverseitig zu erzeugen.
 
-`src/data/` — єдине місце, що знає про Supabase. `features` ходять у репозиторії,
-не в клієнт напряму.
+`src/data/` ist die einzige Schicht, die Supabase kennt. Die Features greifen auf
+Repositories zu, nicht direkt auf den Client.
 
-### Двигун персоналізації
+### Personalisierungs-Engine
 
-Порядок обчислення (з концепту, розділ 2.8):
+Reihenfolge der Berechnung (Konzept, Abschnitt 2.8):
 
-1. Базові бали категорій з онбордингу — симптом × інтенсивність за матрицею ваг
-2. Фазовий модифікатор
-3. Бустер уподобань (×1.5 за вибрані теми)
-4. Поведінка за останні 7 днів — **у v1 не застосовується** (немає даних)
-5. Модифікатор денного чек-іну (енергія)
-6. Сортування категорій за балом
-7. Часовий фільтр: скільки слотів вміщає бюджет
-8. Вибір вправ із урахуванням ротації, рівня активності та **фізичних обмежень**
-9. Завершальний елемент (Tagesanker), якщо бюджет ≥ 10 хв
-10. Скорочення, доки сума не влізе в бюджет
+1. Basis-Scores der Kategorien aus dem Onboarding — Symptom × Intensität laut Gewichtungsmatrix
+2. Phasen-Modifikator
+3. Vorlieben-Booster (×1,5 auf gewählte Themen)
+4. Nutzungsverhalten der letzten 7 Tage — **in v1 nicht angewendet** (keine Daten vorhanden)
+5. Modifikator aus dem Tages-Check-in (Energie)
+6. Sortierung der Kategorien nach Score
+7. Zeitbudget-Filter: wie viele Slots passen hinein
+8. Auswahl der Übungen unter Berücksichtigung von Rotation, Aktivitätslevel und **körperlichen Einschränkungen**
+9. Abschlusselement (Tagesanker), sofern das Budget ≥ 10 Minuten beträgt
+10. Kürzen, bis die Summe in das Budget passt
 
-Незмінні інваріанти, успадковані з прототипу:
+Unveränderliche Invarianten, aus dem Prototyp übernommen:
 
-- **Якорі (вода, ранкове світло) присутні завжди** і не скорочуються
-- Модуль спершу **скорочується** (extended → standard → gentle) і лише потім викидається
-- Сума кроків ніколи не перевищує заявлений бюджет
-- Симптом активує ціль лише за інтенсивності ≥ 2
+- **Die Anker (Wasser, Morgenlicht) sind immer dabei** und werden nie gekürzt
+- Ein Modul wird zuerst **gekürzt** (extended → standard → gentle) und erst danach weggelassen
+- Die Summe der Schritte überschreitet nie das angegebene Budget
+- Ein Symptom aktiviert ein Ziel erst ab Intensität ≥ 2
 
-### Правило формулювань про доказовість
+### Sprachregelung zur Evidenz
 
-Шість рівнів (`hilft`, `kann_helfen`, `tut_gut`, `mechanismus`, `anker`, `reflexion`).
-**Тільки `hilft` має право стверджувати «доведено ефективно».** Усі інші формулюють
-«може підтримати». Це правило живе в `core/evidence.ts` і покривається тестом:
-жоден модуль без рівня `hilft` не може мати стверджувальний текст.
+Sechs Stufen (`hilft`, `kann_helfen`, `tut_gut`, `mechanismus`, `anker`, `reflexion`).
+**Nur `hilft` darf „belegt wirksam" sagen.** Alle übrigen formulieren „kann
+unterstützen". Diese Regel liegt in `core/evidence.ts` und wird durch einen Test
+abgesichert: kein Modul ohne die Stufe `hilft` darf einen behauptenden Text führen.
 
-### Out-of-scope симптоми
+### Out-of-Scope-Symptome
 
-Серцеві скарги, лібідо, сечовий міхур, сухість слизових **ніколи не стають кроком
-рутини**. Вони ведуть до матеріалу зі знань і прямого направлення до лікарки.
+Herzbeschwerden, Libido, Blase und Scheidentrockenheit werden **nie zu einem
+Routineschritt**. Sie führen zu einem Wissensbeitrag und zu einem klaren Verweis an
+die Ärztin.
 
-Це свідоме розходження з концептом: у матриці концепту `Herzrasen` отримує
-«Nervensystem 3», тобто дихальну вправу. Пропонувати дихальну вправу у відповідь на
-серцебиття — відтермінування діагностики. Поведінка прототипу зберігається.
+Das ist eine bewusste Abweichung vom Konzept: dort erhält `Herzrasen` in der Matrix
+„Nervensystem 3", also eine Atemübung. Eine Atemübung als Antwort auf Herzrasen
+verzögert die Abklärung. Das Verhalten des Prototyps bleibt bestehen.
 
-## Модель даних
+## Datenmodell
 
-Дані про здоровʼя лежать **окремою таблицею** від профілю: GDPR ст. 9 вимагає
-окремої правової підстави й окремої згоди, і видалення одного має бути можливим
-без другого.
+Gesundheitsdaten liegen in einer **eigenen Tabelle**, getrennt vom Profil: Art. 9 DSGVO
+verlangt eine eigene Rechtsgrundlage und eine eigene Einwilligung, und das eine muss
+sich löschen lassen, ohne das andere zu berühren.
 
-| Таблиця | Вміст |
+| Tabelle | Inhalt |
 |---|---|
-| `profiles` | `id` = auth.uid, локаль, імʼя, дата завершення онбордингу |
-| `health_profile` | фаза · ГЗТ-статус · рівень активності · вікно пробудження · бюджет · теми · **фізичні обмеження** · мотивація · досвід рутин · структура дня · патерн сну |
-| `symptom_assessments` | історія оцінок (jsonb + дата) — джерело графіка динаміки |
-| `daily_checkins` | настрій, енергія, припливи, якість сну — один на день |
-| `ritual_completions` | виконані кроки, тривалість, час завершення |
-| `routine_overrides` | ручні зняття й додавання кроків |
-| `exercise_feedback` | завершено / кинуто / пропущено — джерело навчання у v2 |
-| `articles` · `exercises` | контент у БД, а не в бандлі |
+| `profiles` | `id` = auth.uid, Locale, Name, Zeitpunkt des Onboarding-Abschlusses |
+| `health_profile` | Phase · HRT-Status · Aktivitätslevel · Aufwachfenster · Zeitbudget · Themen · **körperliche Einschränkungen** · Motivation · Routine-Erfahrung · Tagesstruktur · Schlafmuster |
+| `symptom_assessments` | Verlauf der Einschätzungen (jsonb + Datum) — Grundlage der Verlaufskurve |
+| `daily_checkins` | Stimmung, Energie, Hitzewallungen, Schlafqualität — einer pro Tag |
+| `ritual_completions` | absolvierte Schritte, Dauer, Abschlusszeitpunkt |
+| `routine_overrides` | manuell entfernte und hinzugefügte Schritte |
+| `exercise_feedback` | abgeschlossen / abgebrochen / übersprungen — Grundlage des Lernens in v2 |
+| `articles` · `exercises` | Inhalte in der Datenbank, nicht im Bundle |
 
-Поля під відкладені у v2 фічі (мотивація, патерн сну, структура дня, вихідні)
-заводяться **зараз**, щоб дозаповнення профілю на 5-й день не потребувало міграції.
+Felder für die auf v2 verschobenen Funktionen (Motivation, Schlafmuster, Tagesstruktur,
+Wochenende) werden **jetzt** angelegt, damit das Nachfüllen des Profils am fünften Tag
+keine Migration erfordert.
 
-### Що навмисно не в базі
+### Was bewusst nicht in der Datenbank liegt
 
-**Серія (streak) не зберігається** — рахується з `ritual_completions`. Збережений
-лічильник неминуче розійдеться з реальністю після офлайну, зміни таймзони чи
-повтору синхронізації. У прототипі він захардкоджений (`streak = 3`), тож
-правильної поведінки ще ніхто не визначав.
+**Der Streak wird nicht gespeichert**, sondern aus `ritual_completions` berechnet. Ein
+gespeicherter Zähler läuft zwangsläufig auseinander — nach Offline-Phasen, einem
+Zeitzonenwechsel oder einer wiederholten Synchronisation. Im Prototyp ist er fest
+verdrahtet (`streak = 3`); das korrekte Verhalten wurde also bisher nie definiert.
 
-**Серія мʼяка:** один пропущений день її не обнуляє. Це прямий наслідок принципу
-«sanft statt streng».
+**Der Streak ist weich:** ein ausgelassener Tag setzt ihn nicht zurück. Das folgt
+unmittelbar aus dem Grundsatz „sanft statt streng".
 
-**Каталог модулів лишається в коді.** Він зрощений із логікою збірки — варіанти за
-рівнями, якорі, контекстні рівні доказовості. Винести його в адмінку означає дати
-можливість зламати двигун через редактор, а ціна помилки тут — неправильна
-рекомендація жінці із симптомами. Статті й вправи натомість у БД, щоб контент
-виходив без релізу застосунку.
+**Der Modulkatalog bleibt im Code.** Er ist mit der Zusammenstellungslogik verwachsen —
+Varianten nach Stufen, Anker, kontextabhängige Evidenzstufen. Ihn in ein Admin-Interface
+zu verlagern hieße, die Engine über einen Editor zerstörbar zu machen, und der Preis
+eines Fehlers ist hier eine falsche Empfehlung an eine Frau mit Beschwerden. Artikel und
+Übungen liegen dagegen in der Datenbank, damit Inhalte ohne App-Release ausgeliefert
+werden können.
 
-### Доступ
+### Zugriff
 
-RLS на всіх таблицях: жінка бачить лише власні рядки. `articles` і `exercises` —
-читання для всіх автентифікованих, запис лише сервісною роллю.
+RLS auf allen Tabellen: jede Nutzerin sieht ausschließlich die eigenen Zeilen.
+`articles` und `exercises` sind für alle authentifizierten Nutzerinnen lesbar,
+schreibbar nur über die Service-Rolle.
 
-## Зміни відносно прототипу
+## Änderungen gegenüber dem Prototyp
 
-### Фізичні обмеження — безпека
+### Körperliche Einschränkungen — Sicherheit
 
-Прототип не має поняття обмежень ніде в кодовій базі, при цьому рівень `gentle`
-містить «Baum (Balance)» — вправу на рівновагу на одній нозі, а `active` містить
-«Kniebeuge» і «Push-ups». Аудиторія — 45–70 років.
+Der Prototyp kennt den Begriff der Einschränkung an keiner Stelle der Codebasis.
+Gleichzeitig enthält die Stufe `gentle` „Baum (Balance)" — eine Gleichgewichtsübung auf
+einem Bein —, und `active` enthält „Kniebeuge" und „Push-ups". Die Zielgruppe ist
+45 bis 70 Jahre alt.
 
-Питаємо **перед першою вправою**, не в онбордингу (так пропонує сам концепт):
-спина · коліна · плечі-шия · рівновага · немає обмежень. Обмеження фільтрують
-каталог вправ у `buildRoutine`.
+Gefragt wird **vor der ersten Übung**, nicht im Onboarding (so schlägt es das Konzept
+selbst vor): Rücken · Knie · Schulter/Nacken · Gleichgewicht · keine Einschränkungen.
+Die Angaben filtern anschließend den Übungskatalog in `buildRoutine`.
 
-### Фаза починає впливати на вибір
+### Die Phase beginnt, die Auswahl zu beeinflussen
 
-У прототипі `phase` усередині `buildRoutine` породжує рівно один текстовий
-підпис (`phaseNote`) і **не впливає на вибір модулів**. Тобто найважливіший
-датапоінт онбордингу є підписом під карткою.
+Im Prototyp erzeugt `phase` innerhalb von `buildRoutine` genau eine Textzeile
+(`phaseNote`) und **beeinflusst die Modulauswahl nicht**. Der wichtigste Datenpunkt des
+Onboardings ist damit eine Bildunterschrift.
 
-Вмикаємо модифікатор ваг за концептом (розділ 2.3): рання пери → нервова система
-+20%; пери «mittendrin» → нервова система +30%, mindset +20%; менопауза → знання
-+20%; постменопауза → рух +30%, нервова система −10%; «не впевнена» → знання +30%.
+Der Modifikator wird gemäß Konzept (Abschnitt 2.3) aktiviert: frühe Perimenopause →
+Nervensystem +20 %; Perimenopause „mittendrin" → Nervensystem +30 %, Mindset +20 %;
+Menopause → Wissen +20 %; Postmenopause → Bewegung +30 %, Nervensystem −10 %;
+„unsicher" → Wissen +30 %.
 
-### Теми перестають бути мертвими даними
+### Themen sind keine toten Daten mehr
 
-`profile.topics` записуються на кроці 4 онбордингу і більше ніде не читаються —
-`buildRoutine` їх не бачить. Підключаємо як бустер ×1.5 на відповідні категорії.
+`profile.topics` wird in Schritt 4 des Onboardings geschrieben und danach nirgends
+gelesen — `buildRoutine` sieht die Angabe nicht. Sie wird als Booster ×1,5 auf die
+zugehörigen Kategorien angebunden.
 
-### Ротація вправ
+### Übungsrotation
 
-Прототип показує ту саму рутину щодня. Мета продукту — звичка, і однаковий екран
-30 днів поспіль їй прямо суперечить.
+Der Prototyp zeigt jeden Tag dieselbe Routine. Das Ziel des Produkts ist eine
+Gewohnheit, und ein 30 Tage lang identischer Bildschirm arbeitet diesem Ziel direkt
+entgegen.
 
-У межах категорії вправи ротуються щотижня. Мінімум раз на тиждень зʼявляється
-категорія не з топу — «елемент відкриття» за концептом.
+Innerhalb einer Kategorie rotieren die Übungen wöchentlich. Mindestens einmal pro Woche
+erscheint eine Kategorie außerhalb der Top-Prioritäten — das „Entdeckungs-Element" des
+Konzepts.
 
-### Перестановка кроків онбордингу
+### Umstellung der Onboarding-Schritte
 
-Концепт вимагає «макс. 7–8 екранів, ~2 хвилини». Прототип формально має 8 кроків,
-але крок 3 — це три підекрани по 4 слайдери, тобто **12 слайдерів поспіль**.
-У дві хвилини це не вкладається, і саме тут очікується найбільший відвал.
+Das Konzept fordert „maximal 7–8 Screens, rund 2 Minuten". Der Prototyp hat formal
+8 Schritte, doch Schritt 3 besteht aus drei Unterseiten zu je 4 Slidern, also
+**12 Slidern hintereinander**. In zwei Minuten ist das nicht zu schaffen, und genau
+hier ist der größte Abbruch zu erwarten.
 
-Міняємо місцями кроки 3 і 4: спершу чипи симптомів (до 5), потім інтенсивність
-**лише для обраних**. Було 12 слайдерів завжди — стає не більше 5.
+Die Schritte 3 und 4 werden getauscht: zuerst die Symptom-Chips (bis zu 5), danach die
+Intensität **nur für die ausgewählten**. Statt immer 12 Slidern sind es höchstens 5.
 
-Це і є варіант C2 самого концепту («показувати лише для найсильніших вибраних»).
+Das entspricht der Variante C2 des Konzepts selbst („Anzeige nur für die am stärksten
+ausgewählten").
 
-## Відхилено — і чому
+## Abgelehnt — mit Begründung
 
-**Вік (A2).** Фаза несе той самий сигнал, а в алгоритмі концепту вік не
-використовується ніде. Персональні дані під ст. 9 без жодної дії — мінімізація
-даних зменшує поверхню ризику.
+**Alter (A2).** Die Phase trägt dasselbe Signal, und im Algorithmus des Konzepts wird
+das Alter an keiner Stelle verwendet. Personenbezogene Daten nach Art. 9 ohne jede
+Verwendung — Datenminimierung verkleinert die Angriffsfläche.
 
-**Серцебиття як ритуал** — див. «Out-of-scope симптоми» вище.
+**Herzrasen als Ritual** — siehe „Out-of-Scope-Symptome" oben.
 
-**Сезонна гідратація** — замовник заперечив на полях концепт-документа.
+**Saisonale Hydration** — von der Auftraggeberseite am Rand des Konzeptdokuments
+selbst abgelehnt.
 
-**30-денний челендж.** Концепт просить критично оцінити. Оцінка: для цієї
-аудиторії шкідливо. Челендж вводить логіку «все або нічого» — пропустила день,
-програла й вийшла. Це прямо суперечить принципу «sanft statt streng», а утримання
-будується радше на легкості повернення після пропуску, ніж на безперервності.
-Натомість — мʼяка серія, що не обнуляється від одного пропуску.
+**30-Tage-Challenge.** Das Konzept bittet ausdrücklich um eine kritische Prüfung.
+Bewertung: für diese Zielgruppe schädlich. Eine Challenge führt eine Alles-oder-nichts-
+Logik ein — ein Tag verpasst, verloren, ausgestiegen. Das widerspricht direkt dem
+Grundsatz „sanft statt streng", und Bindung entsteht eher über die Leichtigkeit der
+Rückkehr nach einer Lücke als über Lückenlosigkeit. Stattdessen: ein weicher Streak,
+der von einem einzelnen ausgelassenen Tag nicht zurückgesetzt wird.
 
-## Відкладено у v2
+## Auf v2 verschoben
 
-Навчання за поведінкою (завершила +1 / кинула −1) — потребує накопичених даних.
-Окремі плани на будні й вихідні. Прогресивне профілювання днів 2–7 (мотивація,
-досвід рутин, структура дня). Розрізнення **типу** проблеми зі сном — концепт має
-5 патернів, «прокидаюсь і засинаю» проти «лежу без сну» ведуть до різних ритуалів,
-прототип має лише інтенсивність. Категорія «Харчування» — у матриці концепту є,
-у каталозі модулів немає взагалі. Спільнота. Підписка.
+Lernen aus dem Nutzungsverhalten (abgeschlossen +1 / abgebrochen −1) — setzt gesammelte
+Daten voraus. Getrennte Pläne für Werktage und Wochenende. Progressives Profiling an
+den Tagen 2–7 (Motivation, Routine-Erfahrung, Tagesstruktur). Unterscheidung der **Art**
+der Schlafproblematik — das Konzept kennt 5 Muster, „ich wache auf und schlafe wieder
+ein" und „ich liege wach" führen zu unterschiedlichen Ritualen, der Prototyp kennt nur
+die Intensität. Die Kategorie „Ernährung" — in der Matrix des Konzepts vorhanden, im
+Modulkatalog überhaupt nicht. Community. Abonnement.
 
-**ГЗТ-таб із трекінгом і графіком динаміки** — теж v2. Але **статус ГЗТ питається
-у v1**, на кроці 2 онбордингу: він визначає рамку формулювань у модулях
-(`mgPhaseNote`) і те, чи показувати матеріали про ГЗТ у розділі знань. Тобто у v1
-статус збирається й використовується, окремої вкладки з трекінгом немає.
+**Der HRT-Tab mit Tracking und Verlaufskurve** ebenfalls v2. Der **HRT-Status wird
+jedoch in v1 erhoben**, in Schritt 2 des Onboardings: er bestimmt die sprachliche
+Rahmung in den Modulen (`mgPhaseNote`) und ob HRT-Beiträge im Wissensbereich angezeigt
+werden. In v1 wird der Status also erhoben und genutzt, nur der eigene Tracking-Tab
+fehlt.
 
-Поля БД під усе це заводяться у v1.
+Die Datenbankfelder für all das werden in v1 angelegt.
 
-## Обсяг контенту у v1
+## Inhaltsumfang in v1
 
-**Статті — усі 9.** Три вже написані у прототипі (естроген, «Що таке ГЗТ»,
-типи ГЗТ із порівняльною таблицею, підготовка до візиту, дослідження). Шість —
-заглушки в один абзац; чернетки пишу я з офіційних джерел (S3-Leitlinie, NAMS),
-далі обовʼязкова візація лікаркою до релізу.
+**Artikel — alle 9.** Drei sind im Prototyp bereits geschrieben (Östrogen, „Was ist
+HRT?", HRT-Typen mit Vergleichstabelle, Arztgespräch vorbereiten, Studien & Fakten).
+Sechs sind einzeilige Platzhalter; die Entwürfe entstehen aus offiziellen Quellen
+(S3-Leitlinie, NAMS), die Freigabe durch eine Ärztin vor Release ist verpflichtend.
 
-**Вправи — відкрите питання.** Рівень `gentle` готовий на 4/5. Рівні `moderate`
-і `active` не мають медіа взагалі — це 12 вправ. Варіанти: (а) у v1 доступний
-лише `gentle`, решта відкривається з надходженням зйомок; (б) рівні 2–3 працюють
-на фото й тексті без відео. Рішення за замовником, воно не блокує решту роботи.
+**Übungen — offene Frage.** Die Stufe `gentle` ist zu 4/5 fertig. Die Stufen `moderate`
+und `active` haben überhaupt keine Medien — das sind 12 Übungen. Varianten: (a) in v1
+ist nur `gentle` verfügbar, der Rest wird mit Eintreffen der Aufnahmen freigeschaltet;
+(b) die Stufen 2 und 3 laufen mit Foto und Text ohne Video. Die Entscheidung liegt bei
+der Auftraggeberseite und blockiert die übrige Arbeit nicht.
 
-## Ризики перенесення на React Native
+## Risiken der Portierung nach React Native
 
-Місця, де прототип не переїде дослівно:
+Stellen, an denen der Prototyp nicht wörtlich übernommen werden kann:
 
-- **`backdropFilter: blur()`** використано в модалках і кнопці «назад» — у RN не
-  існує. Заміна на `expo-blur`: візуально близько, не піксель-у-піксель.
-- **Варіативний шрифт** Plus Jakarta Sans (`font-weight: 200–800` з одного TTF) на
-  Android у RN підтримується ненадійно. Беремо 4 статичні накреслення замість
-  плавного діапазону.
-- **Тіні.** Прототип скрізь на `box-shadow` із теплим бурштиновим відтінком.
-  Android знає лише `elevation` — сірий і без кольору. Тепле світіння карток на
-  Android буде біднішим; альтернатива — малювати тінь градієнтом.
-- Градієнти, SVG та анімації переносяться нормально: `expo-linear-gradient`,
-  `react-native-svg` (шляхи іконок беруться дослівно), `reanimated` для дихального
-  пейсера й кілець прогресу.
+- **`backdropFilter: blur()`** wird in den Modalen und im Zurück-Button verwendet — in
+  React Native existiert das nicht. Ersatz durch `expo-blur`: visuell nahe, aber nicht
+  pixelgenau.
+- **Variable Schrift.** Plus Jakarta Sans (`font-weight: 200–800` aus einer einzigen
+  TTF) wird unter Android in React Native unzuverlässig unterstützt. Statt des stufenlosen
+  Bereichs werden 4 statische Schnitte eingebunden.
+- **Schatten.** Der Prototyp arbeitet durchgängig mit `box-shadow` in einem warmen
+  Bernsteinton. Android kennt nur `elevation` — grau und ohne Farbe. Das warme Leuchten
+  der Karten fällt unter Android deutlich ärmer aus; Alternative wäre, den Schatten als
+  Verlauf zu zeichnen.
+- Verläufe, SVG und Animationen portieren sauber: `expo-linear-gradient`,
+  `react-native-svg` (die Icon-Pfade werden wörtlich übernommen), `reanimated` für den
+  Atem-Pacer und die Fortschrittsringe.
 
-## Декомпозиція
+## Zerlegung
 
-v1 завеликий для одного плану реалізації. Розбивається на етапи, кожен зі своїм
-планом і своєю точкою перевірки:
+v1 ist für einen einzelnen Umsetzungsplan zu groß. Die Arbeit zerfällt in Etappen mit
+je eigenem Plan und eigenem Prüfpunkt:
 
-1. **Ядро** — `src/core/` повністю, з тестами. Без UI. Перевірка: інваріанти двигуна
-   зелені, включно з новими (фаза, бустер, обмеження, ротація).
-2. **Схема БД** — повна модель концепту, RLS, міграції, репозиторії. Без UI.
-3. **Дизайн-система** — токени, базові компоненти, шрифти, розвʼязання трьох
-   RN-ризиків (blur, тіні, накреслення).
-4. **Онбординг** — 8 екранів із перестановкою кроків 3↔4.
-5. **Сьогодні + плеєр рутини** — головний екран, чек-ін, кроки, вправи, рефлексія.
-6. **Знання + профіль + нагадування** — розділ статей, налаштування, пуші.
-7. **Реліз** — акаунти й синхронізація, згоди, сторінки магазинів, TestFlight.
+1. **Kern** — `src/core/` vollständig, mit Tests. Ohne Oberfläche. Prüfpunkt: die
+   Invarianten der Engine sind grün, einschließlich der neuen (Phase, Booster,
+   Einschränkungen, Rotation).
+2. **Datenbankschema** — vollständiges Konzeptmodell, RLS, Migrationen, Repositories.
+   Ohne Oberfläche.
+3. **Designsystem** — Tokens, Basiskomponenten, Schriften, Auflösung der drei
+   RN-Risiken (Blur, Schatten, Schnitte).
+4. **Onboarding** — 8 Screens mit getauschten Schritten 3 und 4.
+5. **Heute + Ritual-Player** — Startbildschirm, Check-in, Schritte, Übungen, Reflexion.
+6. **Wissen + Profil + Erinnerungen** — Artikelbereich, Einstellungen, Push.
+7. **Release** — Konten und Synchronisation, Einwilligungen, Store-Seiten, TestFlight.
 
-Порядок 1→2 можна вести паралельно з 3; далі послідовно.
+Etappe 1 und 2 können parallel zu 3 laufen, danach ist die Reihenfolge sequenziell.
 
-## Тестування
+## Tests
 
-- `core/` — юніт-тести без рендера. Критичні інваріанти: сума кроків ≤ бюджет;
-  якорі присутні завжди; жоден out-of-scope симптом не стає кроком; жодна вправа
-  не суперечить заявленим обмеженням; правило формулювань про доказовість.
-- `src/data/` — тести репозиторіїв проти тестової схеми Supabase.
-- Екрани — smoke-тести навігації; візуальна відповідність звіряється вручну
-  проти прототипу.
+- `core/` — Unit-Tests ohne Rendering. Kritische Invarianten: Summe der Schritte
+  ≤ Budget; die Anker sind immer vorhanden; kein Out-of-Scope-Symptom wird je zum
+  Schritt; keine Übung widerspricht den angegebenen Einschränkungen; die Sprachregelung
+  zur Evidenz.
+- `src/data/` — Repository-Tests gegen ein Supabase-Testschema.
+- Screens — Smoke-Tests der Navigation; die visuelle Übereinstimmung wird manuell gegen
+  den Prototyp geprüft.
 
-## Юридичне (поза кодом, але блокує реліз)
+## Rechtliches (außerhalb des Codes, blockiert aber den Release)
 
-Згода на обробку даних про здоровʼя (ст. 9) окремо від загальної. Політика
-приватності й умови. Позиціонування як wellness, не медичний виріб — інакше
-вмикається MDR. Візація медичного контенту лікаркою до релізу.
+Einwilligung in die Verarbeitung von Gesundheitsdaten (Art. 9) getrennt von der
+allgemeinen Einwilligung. Datenschutzerklärung und Nutzungsbedingungen. Positionierung
+als Wellness-Anwendung, nicht als Medizinprodukt — andernfalls greift die MDR.
+Freigabe der medizinischen Inhalte durch eine Ärztin vor Release.
