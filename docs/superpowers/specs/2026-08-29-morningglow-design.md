@@ -380,10 +380,13 @@ Stellen, an denen der Prototyp nicht wörtlich übernommen werden kann:
 - **Variable Schrift.** Plus Jakarta Sans (`font-weight: 200–800` aus einer einzigen
   TTF) wird unter Android in React Native unzuverlässig unterstützt. Statt des stufenlosen
   Bereichs werden 4 statische Schnitte eingebunden.
-- **Schatten.** Der Prototyp arbeitet durchgängig mit `box-shadow` in einem warmen
-  Bernsteinton. Android kennt nur `elevation` — grau und ohne Farbe. Das warme Leuchten
-  der Karten fällt unter Android deutlich ärmer aus; Alternative wäre, den Schatten als
-  Verlauf zu zeichnen.
+- **Schatten — Entwarnung, nachgeprüft.** Frühere Fassungen dieser Spezifikation hielten
+  fest, Android kenne nur das graue `elevation` und das warme Leuchten der Karten falle
+  darum ärmer aus. Das stimmt seit der Neuen Architektur nicht mehr: `boxShadow` ist ab
+  React Native 0.76 verfügbar (in Expo SDK 54 standardmäßig aktiv), nimmt eine Farbe
+  entgegen und trägt auf Android ab Version 9. Der Bernsteinton des Prototyps lässt sich
+  also 1:1 übernehmen. Einzige Einschränkung: auf Android 8 und älter entfällt der
+  Schatten ersatzlos — die Fläche bleibt sauber, nur ohne Tiefe.
 - Verläufe, SVG und Animationen portieren sauber: `expo-linear-gradient`,
   `react-native-svg` (die Icon-Pfade werden wörtlich übernommen), `reanimated` für den
   Atem-Pacer und die Fortschrittsringe.
