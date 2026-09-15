@@ -1,0 +1,22 @@
+# secrets (GitLab/GitHub PATs) - never commit
+.secrets/
+.vercel
+.env*
+
+# projects are independent git repos, not part of this one
+projects/
+
+# dependencies & build output
+node_modules/
+.venv/
+.next/
+
+# local-only working data
+backups/
+.claude/worktrees/
+.claude/settings.local.json
+
+# scratch
+pvc-mock-*.json
+*.zip
+*.tar.gz
