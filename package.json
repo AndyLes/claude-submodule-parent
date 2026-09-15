@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "yaml": "^2.8.3"
+  },
+  "dependencies": {
+    "docx": "^9.6.1",
+    "pptxgenjs": "^4.0.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-icons": "^5.6.0",
+    "sharp": "^0.35.1"
+  }
+}

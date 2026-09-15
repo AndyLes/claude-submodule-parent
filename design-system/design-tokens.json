@@ -1,0 +1,125 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "glassbase": {
+    "color": {
+      "primary": {
+        "blue": { "$value": "#0E76E4", "$type": "color", "$description": "Primary brand blue" },
+        "light-blue": { "$value": "#F3F7FC", "$type": "color", "$description": "Light blue tint for backgrounds" },
+        "light-blue-2": { "$value": "#E9F3FD", "$type": "color", "$description": "Slightly deeper blue tint for hover/active states" }
+      },
+      "neutral": {
+        "white": { "$value": "#FFFFFF", "$type": "color" },
+        "black": { "$value": "#0B0B0B", "$type": "color", "$description": "Near-black for primary text" },
+        "sub": { "$value": "#717191", "$type": "color", "$description": "Secondary/muted text" },
+        "border": { "$value": "#BDBDCA", "$type": "color", "$description": "Input and card borders" },
+        "line": { "$value": "#DADADA", "$type": "color", "$description": "Dividers and separators" },
+        "light-grey": { "$value": "#FAF8F8", "$type": "color", "$description": "Light background surface" }
+      },
+      "semantic": {
+        "attention": { "$value": "#FB822C", "$type": "color", "$description": "Orange — warnings, highlights, CTAs" }
+      }
+    },
+    "typography": {
+      "font-family": {
+        "heading": { "$value": "Inter", "$type": "fontFamily", "$description": "Desktop headings" },
+        "body": { "$value": "IBM Plex Sans", "$type": "fontFamily", "$description": "Body text, buttons, labels" },
+        "mobile-heading": { "$value": "Montserrat", "$type": "fontFamily", "$description": "Mobile headings" }
+      },
+      "desktop": {
+        "big-text": { "$value": { "fontFamily": "IBM Plex Sans", "fontWeight": 500, "fontSize": 40, "lineHeight": "120%" }, "$type": "typography" },
+        "h1-title": { "$value": { "fontFamily": "Inter", "fontWeight": 500, "fontSize": 48, "lineHeight": "120%" }, "$type": "typography" },
+        "h1-medium": { "$value": { "fontFamily": "Inter", "fontWeight": 500, "fontSize": 32, "lineHeight": "150%" }, "$type": "typography" },
+        "h1-bold": { "$value": { "fontFamily": "Inter", "fontWeight": 700, "fontSize": 32, "lineHeight": "130%" }, "$type": "typography" },
+        "h2-regular": { "$value": { "fontFamily": "Inter", "fontWeight": 400, "fontSize": 24, "lineHeight": "150%" }, "$type": "typography" },
+        "h2-medium": { "$value": { "fontFamily": "Inter", "fontWeight": 500, "fontSize": 24, "lineHeight": "150%" }, "$type": "typography" },
+        "h3-bold": { "$value": { "fontFamily": "Inter", "fontWeight": 700, "fontSize": 20, "lineHeight": "120%" }, "$type": "typography" },
+        "h3-medium": { "$value": { "fontFamily": "Inter", "fontWeight": 500, "fontSize": 20, "lineHeight": "120%" }, "$type": "typography" },
+        "h4-medium": { "$value": { "fontFamily": "Inter", "fontWeight": 500, "fontSize": 18, "lineHeight": "120%" }, "$type": "typography" },
+        "h5-medium": { "$value": { "fontFamily": "Inter", "fontWeight": 500, "fontSize": 16, "lineHeight": "120%" }, "$type": "typography" },
+        "h6-bold": { "$value": { "fontFamily": "Inter", "fontWeight": 700, "fontSize": 14, "lineHeight": "140%" }, "$type": "typography" },
+        "h7-regular": { "$value": { "fontFamily": "Inter", "fontWeight": 400, "fontSize": 12, "lineHeight": "120%" }, "$type": "typography" }
+      },
+      "body": {
+        "text-1": { "$value": { "fontFamily": "IBM Plex Sans", "fontWeight": 400, "fontSize": 24, "lineHeight": "150%" }, "$type": "typography" },
+        "text-2-regular": { "$value": { "fontFamily": "IBM Plex Sans", "fontWeight": 400, "fontSize": 16, "lineHeight": "150%" }, "$type": "typography" },
+        "text-2-medium": { "$value": { "fontFamily": "IBM Plex Sans", "fontWeight": 500, "fontSize": 16, "lineHeight": "150%" }, "$type": "typography" },
+        "text-2-bold": { "$value": { "fontFamily": "IBM Plex Sans", "fontWeight": 700, "fontSize": 16, "lineHeight": "150%" }, "$type": "typography" },
+        "text-3-regular": { "$value": { "fontFamily": "IBM Plex Sans", "fontWeight": 400, "fontSize": 14, "lineHeight": "140%" }, "$type": "typography" },
+        "text-3-medium": { "$value": { "fontFamily": "IBM Plex Sans", "fontWeight": 500, "fontSize": 14, "lineHeight": "140%" }, "$type": "typography" },
+        "text-4-medium": { "$value": { "fontFamily": "IBM Plex Sans", "fontWeight": 500, "fontSize": 12, "lineHeight": "120%" }, "$type": "typography" },
+        "text-4-regular": { "$value": { "fontFamily": "IBM Plex Sans", "fontWeight": 400, "fontSize": 12, "lineHeight": "120%" }, "$type": "typography" }
+      },
+      "button": {
+        "text-1-semibold": { "$value": { "fontFamily": "IBM Plex Sans", "fontWeight": 600, "fontSize": 18, "lineHeight": "150%" }, "$type": "typography" },
+        "text-2-regular": { "$value": { "fontFamily": "IBM Plex Sans", "fontWeight": 400, "fontSize": 16, "lineHeight": "150%" }, "$type": "typography" },
+        "text-3-medium": { "$value": { "fontFamily": "IBM Plex Sans", "fontWeight": 500, "fontSize": 14, "lineHeight": "140%" }, "$type": "typography" },
+        "text-3-semibold": { "$value": { "fontFamily": "IBM Plex Sans", "fontWeight": 600, "fontSize": 14, "lineHeight": "140%" }, "$type": "typography" },
+        "text-4-medium": { "$value": { "fontFamily": "IBM Plex Sans", "fontWeight": 500, "fontSize": 12, "lineHeight": "120%" }, "$type": "typography" }
+      },
+      "mobile": {
+        "big-text": { "$value": { "fontFamily": "Montserrat", "fontWeight": 500, "fontSize": 28, "lineHeight": "120%" }, "$type": "typography" },
+        "h1-medium": { "$value": { "fontFamily": "Montserrat", "fontWeight": 500, "fontSize": 24, "lineHeight": "130%" }, "$type": "typography" },
+        "h1-bold": { "$value": { "fontFamily": "Montserrat", "fontWeight": 700, "fontSize": 24, "lineHeight": "130%" }, "$type": "typography" },
+        "h3-bold": { "$value": { "fontFamily": "Montserrat", "fontWeight": 700, "fontSize": 14, "lineHeight": "130%" }, "$type": "typography" },
+        "h6-bold": { "$value": { "fontFamily": "Montserrat", "fontWeight": 700, "fontSize": 12, "lineHeight": "140%" }, "$type": "typography" },
+        "h6-medium": { "$value": { "fontFamily": "Montserrat", "fontWeight": 500, "fontSize": 12, "lineHeight": "140%" }, "$type": "typography" }
+      }
+    },
+    "spacing": {
+      "0": { "$value": "0px", "$type": "dimension" },
+      "0.5": { "$value": "2px", "$type": "dimension" },
+      "1": { "$value": "4px", "$type": "dimension" },
+      "1.5": { "$value": "6px", "$type": "dimension" },
+      "2": { "$value": "8px", "$type": "dimension" },
+      "2.5": { "$value": "10px", "$type": "dimension" },
+      "3": { "$value": "12px", "$type": "dimension" },
+      "4": { "$value": "16px", "$type": "dimension" },
+      "5": { "$value": "20px", "$type": "dimension" },
+      "6": { "$value": "24px", "$type": "dimension" },
+      "8": { "$value": "32px", "$type": "dimension" },
+      "9": { "$value": "35px", "$type": "dimension" },
+      "12": { "$value": "48px", "$type": "dimension" },
+      "16": { "$value": "64px", "$type": "dimension" },
+      "20": { "$value": "80px", "$type": "dimension" }
+    },
+    "borderRadius": {
+      "sm": { "$value": "4px", "$type": "dimension" },
+      "DEFAULT": { "$value": "6px", "$type": "dimension" },
+      "md": { "$value": "8px", "$type": "dimension" },
+      "lg": { "$value": "14px", "$type": "dimension" },
+      "xl": { "$value": "18px", "$type": "dimension" },
+      "2xl": { "$value": "24px", "$type": "dimension" },
+      "3xl": { "$value": "28px", "$type": "dimension" },
+      "pill": { "$value": "60px", "$type": "dimension" },
+      "full": { "$value": "80px", "$type": "dimension" }
+    },
+    "shadow": {
+      "$description": "No shadows — flat design system. Use borders and background contrast for separation."
+    },
+    "components": {
+      "button": {
+        "variants": ["solid", "border", "text"],
+        "versions": {
+          "v1": { "$description": "Primary buttons — solid blue, bordered, text-only" },
+          "v2": { "$description": "Secondary buttons — same variant set, alternate sizing" },
+          "v3": { "$description": "Tertiary — border and text-with-underline" }
+        }
+      },
+      "dropdown": {
+        "variants": ["border", "classic", "line"]
+      },
+      "toggle": {
+        "states": ["enable", "disable"]
+      },
+      "checkbox": {
+        "states": ["on", "off"]
+      },
+      "arrow": {
+        "directions": ["left", "right"]
+      },
+      "header": {
+        "variants": ["default", "variant2", "mobile"]
+      }
+    }
+  }
+}
