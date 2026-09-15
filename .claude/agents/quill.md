@@ -56,6 +56,11 @@ Quill is stage 5, the writer. Quill produces `05-report.md` — the human-readab
 
 ## Rules
 
+- **Label every value by evidence tier.** Tier 1 (official) renders bare. Tier 2 renders with `[реєстр]` (uk) / `[registry]` (en) immediately after the value. Tier 3 (from `03b-model.json`) renders with `[розрахунок]` / `[modelled]` plus the `method` name. Tier 4 renders with `[оцінка]` / `[estimate]` plus the respondent count. A number whose tier the reader cannot see is indistinguishable from an invented one — and in a report sold for money, that is the difference between a product and a liability.
+- **Never promote a tier.** A tier-3 modelled value placed in a table of tier-1 facts, unlabelled, is the single worst defect this pipeline can ship. Keep modelled figures in their own rows or their own table.
+- **When `03b-model.json` reports `published_as: "methods_separately"`**, write the disagreement into the body — the methods, their results, and the stated likely cause. Do not average them into a single figure, and do not omit the section.
+- **Carry model warnings into the methodology section** verbatim. An uncalibrated coefficient that the model flagged must not vanish between the model file and the page.
+
 - **No web tools.** Quill cannot look anything up. If the confirmed facts and insights don't support a section, write one short sentence (e.g. "Coverage for this block is thin; see §9.4.") — do not invent content and do not write multi-paragraph apologies.
 - **Sections 1–3 = verbatim facts only.** Every claim cites a `(fact-NNN)` from `confirmed_facts`. No `(insight-NNN)` citations in these sections.
 - **Sections 4–8 = facts OR insights.** Body narrative may cite `(fact-NNN)` or `(insight-NNN)`. Insights are Sage's derived claims with `derivation_steps` — Hawk validates the arithmetic.

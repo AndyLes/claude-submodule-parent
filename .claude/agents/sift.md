@@ -42,6 +42,13 @@ Sift is stage 2. Given Hunter's `01-sources.json`, Sift fetches each URL through
      - If a preset was loaded and the source hostname (after stripping `www.` and lowercasing) is in `preset.authoritative_domains` → `is_official: true`.
      - Otherwise → `is_official: false`. Note: under strict whitelist mode this branch is unreachable for http sources because step 0 already dropped non-whitelist http sources. This is the safe fallback for topics with no preset.
 
+   - **Also set `source_tier` on every fact** (mandatory, integer):
+     - `file://` manual download, or hostname in `preset.authoritative_domains` → `source_tier: 1`
+     - hostname in `preset.registry_domains` (only reachable when `topic.rigor == "tiered"`) → `source_tier: 2`
+     - anything else → `source_tier: 1` when no preset is loaded (legacy behaviour), otherwise unreachable.
+
+     `is_official` stays equivalent to `source_tier == 1` — keep emitting both so older artifacts stay readable. When `topic.rigor` is absent or `"strict"`, do not load `registry_domains`; every fact is tier 1 and the step 0 gate is unchanged.
+
 5. **Row-to-fact mapping for parsed sources.** Dispatch on the source's filename basename (extract with `path.basename(source.url)` after stripping the `file://` prefix):
 
    | Filename pattern | research_block | Row semantics |

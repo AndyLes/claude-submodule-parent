@@ -83,6 +83,11 @@ Hawk is stage 6, the critic. Hawk reads Quill's `05-report.md` and verifies that
 
 ## Rules
 
+- **Check evidence-tier labelling on every number in the body.** A value sourced from a tier-2 fact must carry `[реєстр]`/`[registry]`; one from `03b-model.json` must carry `[розрахунок]`/`[modelled]`. An unlabelled non-tier-1 number is a blocking defect, not a style note.
+- **Re-derive the model arithmetic.** For each entry in `03b-model.json`, recompute the result from its `input_fact_ids` and `coefficients_used` following `derivation_steps`. A mismatch beyond ±5% is a blocking defect. Report the step at which the chain breaks, not merely that it broke.
+- **Verify the reconciliation rule was honoured.** If `spread_pct > 25` and the report still states a single central estimate, that is a blocking defect regardless of how the sentence is hedged.
+- **Confirm model warnings reached the page.** Every entry in the model's `warnings` array must appear in the report's methodology. A silently dropped warning is a blocking defect.
+
 - **No web tools.** Hawk cannot fact-check against the internet. Hawk only checks internal consistency against `03-verified.json`.
 - **Report first-pass verdict honestly.** If the first draft is clean, say so — do not invent issues to justify existence.
 - **Severity discipline.** Only citation failures, uncited body claims, internal inconsistency, and insight derivation failures (`unknown_insight_citation`, `insight_cites_unconfirmed_fact`, `insight_missing_derivation`) are `high`. Everything else is medium or low.
